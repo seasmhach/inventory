@@ -1,0 +1,78 @@
+@mixin navbar($color) {
+	@include background-image(linear-gradient($color, darken($color, 10%)));
+	border-bottom: 1px solid darken($color, 15%);
+	
+	> ul {
+		> li {
+			> a {
+				@if (lightness($color) < 50) {
+					color: $background-color;
+					text-shadow: 1px 1px darken($color, 20%);
+				} @else if (lightness($color) > 75) {
+					color: $font-color;
+					text-shadow: 1px 1px $background-color;
+				} @else {
+					color: darken($color, 45%);
+					text-shadow: 1px 1px lighten($color, 6%);
+				}
+			}
+		}
+	}
+}
+
+nav.bar {
+	position: fixed;
+	padding: 0 1em;
+	top: 0;
+	width: 100%;
+	@include background-image(linear-gradient($default-color, darken($default-color, 10%)));
+	border-bottom: 1px solid darken($default-color, 10%);
+	z-index: 9999;
+
+	> ul {
+		> li {
+			float: left;
+			display: inline;
+			margin-right: 10px;
+			
+			> a {
+				display: block;
+				padding: 1em;
+				color: $font-color;
+				text-decoration: none;
+				text-shadow: 1px 1px $background-color;
+			}
+			
+			> a:hover, > a:focus {
+				background-color: rgba(#000, 0.1);
+			}
+		}
+		
+		.dropdown-content {
+			margin-top: 1px;
+			border-top: none;
+			@include border-radius(0 0 $border-radius $border-radius);
+			z-index: 999999;
+		}
+	}
+	
+	a {
+		outline: none;
+	}
+	
+	&:after { 
+		content: "."; 
+		visibility: hidden; 
+		display: block; 
+		height: 0; 
+		clear: both;
+	}
+}
+
+nav.bar.primary { @include navbar($info-color); }
+nav.bar.info { @include navbar($info-color); }
+nav.bar.success { @include navbar($success-color); }
+nav.bar.warning { @include navbar($warning-color); }
+nav.bar.error { @include navbar($error-color); }
+nav.bar.primary { @include navbar($primary-color); }
+nav.bar.dark { @include navbar($dark-color); }

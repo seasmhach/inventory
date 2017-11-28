@@ -1,0 +1,45 @@
+{#
+	Creating the join methods. For each foreign key, three possible joins will
+	be created: INNER, LEFT and RIGHT.
+#}
+{% for key in foreign_keys %}
+	/**
+	 * Inner join {{ key.classname }} to this object.
+	 * 
+	 * @param \Contact\{{ join_namespace }} ${{ key.table }} {{ key.classname }} object to join
+	 */
+	public function inner_join_{{ key.table }}_by_{% for left_side_column, right_side_column in key.columns %}{{ left_side_column }}{% if loop.last == false %}_and_{% endif %}{% endfor %}(\{{ key.namespace }}\{{ join_namespace }} ${{ key.table }}) {
+		$this->join(${{ key.table }}, [
+{% for left_side_column, right_side_column in key.columns %}
+			'{{ left_side_column }}' => '{{ right_side_column }}',
+{% endfor %}
+		], 'INNER');
+	}
+
+	/**
+	 * Left join {{ key.classname }} to this object.
+	 * 
+	 * @param \Contact\{{ join_namespace }} ${{ key.table }} {{ key.classname }} object to join
+	 */
+	public function left_join_{{ key.table }}_by_{% for left_side_column, column in key.columns %}{{ left_side_column }}{% if loop.last == false %}_and_{% endif %}{% endfor %}(\{{ key.namespace }}\{{ join_namespace }} ${{ key.table }}) {
+		$this->join(${{ key.table }}, [
+{% for left_side_column, right_side_column in key.columns %}
+			'{{ left_side_column }}' => '{{ right_side_column }}',
+{% endfor %}
+		], 'LEFT');
+	}
+	
+	/**
+	 * Right join {{ key.classname }} to this object.
+	 * 
+	 * @param \Contact\{{ join_namespace }} ${{ key.table }} {{ key.classname }} object to join
+	 */
+	public function right_join_{{ key.table }}_by_{% for left_side_column, column in key.columns %}{{ left_side_column }}{% if loop.last == false %}_and_{% endif %}{% endfor %}(\{{ key.namespace }}\{{ join_namespace }} ${{ key.table }}) {
+		$this->join(${{ key.table }}, [
+{% for left_side_column, right_side_column in key.columns %}
+			'{{ left_side_column }}' => '{{ right_side_column }}',
+{% endfor %}
+		], 'RIGHT');
+	}
+
+{% endfor %}

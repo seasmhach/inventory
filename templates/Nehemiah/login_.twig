@@ -1,0 +1,31 @@
+{% extends "index.twig" %}
+
+{% block login %}{% endblock %}
+
+{% block content %}
+		<form method="post" action="{{ url.url }}/account/login" class="login">
+			<div id="logo" class="text-center"><img src="{{ url.template }}/images/logo.png" alt="Tribal Trading"></div>
+			<div class="panel">
+				<div class="head"><span class="fa fa-key"></span> Login</div>
+				<div class="body">
+					<div class="grid-1">
+						<div class="col">
+							<div class="group">
+								<div class="addon"><span class="fa fa-user"></span></div>
+								<input type="text" name="login" class="control" placeholder="username">
+							</div>
+						</div>
+						<div class="col">
+							<div class="group">
+								<div class="addon"><span class="fa fa-lock"></span></div>
+								<input type="password" name="password" class="control" placeholder="Password">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="foot text-right">
+					<button type="submit" class="btn info"><span class="fa fa-arrow-circle-right"></span> Log-in</button>
+				</div>
+			</div>
+		</form>
+{% endblock %}

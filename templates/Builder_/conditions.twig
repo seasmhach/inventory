@@ -1,0 +1,88 @@
+{#
+	Add conditions for the WHERE clause
+#}
+{% for column in columns %}
+	public function filter_by_{{ column.name }}($value, string $operator = '=') {
+		$this->conditions[] = '{{ table }}.{{ column.name }} ' . $operator . ' ' . $this->add_parameter('{{ column.name }}', $value);
+	}
+	
+{% if true == column.nullable %}
+	public function {{ column.name }}_is_null() {
+		$this->conditions[] = '{{ table }}.{{ column.name }} IS NULL';
+	}
+	
+	public function {{ column.name }}_is_not_null() {
+		$this->conditions[] = '{{ table }}.{{ column.name }} IS NOT NULL';
+	}
+	
+{% endif %}
+	public function {{ column.name }}_between($min, $max) {
+{% if column.sql_type == 'datetime' %}
+		$min = date("Y-m-d H:i:s", strtotime($min));
+		$max = date("Y-m-d H:i:s", strtotime($max));
+
+{% elseif 'date' == column.sql_type %}
+		$min = date("Y-m-d", strtotime($min));
+		$max = date("Y-m-d", strtotime($max));
+
+{% endif %}
+		$this->conditions[] = '{{ table }}.{{ column.name }} BETWEEN ' . $this->add_parameter('{{ column.name }}', $min) . ' AND ' . $this->add_parameter('{{ column.name }}', $max);
+	}
+	
+	public function {{ column.name }}_not_between($min, $max) {
+{% if column.sql_type == 'datetime' %}
+		$min = date("Y-m-d H:i:s", strtotime($min));
+		$max = date("Y-m-d H:i:s", strtotime($max));
+
+{% elseif 'date' == column.sql_type %}
+		$min = date("Y-m-d", strtotime($min));
+		$max = date("Y-m-d", strtotime($max));
+
+{% endif %}
+		$this->conditions[] = '{{ table }}.{{ column.name }} NOT BETWEEN ' . $this->add_parameter('{{ column.name }}', $min) . ' AND ' . $this->add_parameter('{{ column.name }}', $max);
+	}
+	
+	public function {{ column.name }}_in(array $values) {
+		$parameters = [];
+		
+		foreach ($values as $value) {
+			$parameters[] = $this->add_parameter('{{ column.name }}', $value);
+		}
+		
+		$this->conditions[] = '{{ table }}.{{ column.name }} IN (' . implode(', ', $parameters) . ')';
+	}
+	
+	public function {{ column.name }}_not_in(array $values) {
+		$parameters = [];
+		
+		foreach ($values as $value) {
+			$parameters[] = $this->add_parameter('{{ column.name }}', $value);
+		}
+		
+		$this->conditions[] = '{{ table }}.{{ column.name }} NOT IN (' . implode(', ', $parameters) . ')';
+	}
+
+	public function {{ column.name }}_like(string $value, string $prefix = '%', string $suffix = '%') {	
+		$this->conditions[] = '{{ table }}.{{ column.name }} LIKE ' . $this->add_parameter('{{ column.name }}', $prefix . $value . $suffix);
+	}
+{% endfor %}
+
+	public function is_null($column) {
+		$this->conditions[] = "{{ table }}.$column IS NULL";
+	}
+	
+	public function is_not_null($column) {
+		$this->conditions[] = "{{ table }}.$column IS NOT NULL";
+	}
+	
+	public function filter_by($column, $value, string $operator = '=') {
+		$this->conditions[] = "{{ table }}.$column " . $operator . ' ' . $this->add_parameter($column, $value);
+	}
+	
+	public function having($column, $value, string $operator = '=') {
+		$this->having[] = "`$column` " . $operator . ' ' . $this->add_parameter($column, $value);
+	}
+	
+	public function having_compare(string $left_column, string $right_column, string $operator = '=') {
+		$this->having[] = "$left_column " . $operator . " $right_column";
+	}

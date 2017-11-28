@@ -1,0 +1,99 @@
+@import "compass/css3";
+@import 'sanitize';
+@import 'globals';
+@import 'typography';
+@import 'modal';
+@import 'panel';
+@import 'alerts';
+@import 'dropdown';
+@import 'form';
+@import 'button';
+@import 'table';
+@import 'navbar';
+@import 'tab';
+@import 'nav';
+@import 'notify';
+
+body {
+	padding-top: 80px;
+	background: #444 url("../images/debut_dark.png") repeat;
+}
+
+.container {
+	padding: 0 1em;
+}
+
+.shadow {
+	@include box-shadow($shadow); 
+}
+
+.shadow-dark {
+	@include box-shadow($dark-shadow);
+}
+
+.text-right {
+	text-align: right;
+}
+
+.text-center {
+	text-align: center;
+}
+
+.login {
+	width: 600px;
+	margin: 0 auto;
+	
+	#logo {
+		margin-bottom: 50px;
+
+		img {
+			width: 200px;
+		}
+	}
+}
+
+.hidden {
+	display: none !important;
+}
+
+.toggle-selectpicker {
+	display: flex;
+	padding: 6px 12px;
+	width: 100%;
+	height: 34px;
+	background-color: $background-color;
+	outline: 0;
+	border: none;
+	border: 1px solid darken($default-color, 5%);
+	border-radius: $border-radius;
+	
+	.button-label {
+		margin-right: 12px;
+		flex: 1;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	
+	> .fa {
+		line-height: 1.4em;
+	}
+}
+
+.toggle-selectpicker:focus {
+	border-color: $primary-color;
+	@include box-shadow($primary-shadow);
+}
+
+.spreadsheet {
+	.toggle-selectpicker {
+		height: 26px;
+		padding: 0;
+		border: none;
+		box-shadow: none;
+	}
+	
+	.toggle-selectpicker {
+		box-shadow: none;
+	}
+}

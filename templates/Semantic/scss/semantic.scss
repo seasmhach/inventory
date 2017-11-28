@@ -1,0 +1,39 @@
+main:not(.container) {
+	padding: 4em 2em 2em 2em;
+}
+
+.clone-template {
+	display: none;
+}
+
+.login {
+	margin-top: 50px !important;
+}
+
+.dropdown.transparent {
+	border-color: transparent !important;
+	-webkit-box-shadow: none !important;
+	-moz-box-shadow: none !important;
+	box-shadow: none !important;
+	background-color: transparent !important;
+		
+	.menu {
+		border-color: transparent !important;
+		-webkit-box-shadow: none !important;
+		-moz-box-shadow: none !important;
+		box-shadow: none !important;
+		/*background-color: transparent !important;*/
+	}
+}
+
+.table.spreadsheet td {
+	padding: 0 3px !important;
+}
+
+label input[type="file"] {
+	display: none;
+}
+
+#twig-editor textarea, #css-editor textarea, #html-editor textarea {
+	padding: 0 !important;
+}

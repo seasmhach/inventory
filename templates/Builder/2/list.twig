@@ -1,0 +1,113 @@
+{#
+	These methods below allow you to easily define which columns you want to
+	use in your select statement. They'll allow you to set aliases too.
+#}
+{% for column_name, column in table.columns %}
+	/**
+	 * Include {{ table_name }}.{{ column_name }} in your select query. You can
+	 * specify an alias to use. The alias defaults to the actual column name.
+	 *
+	 * @param string $alias Alias for this column
+	 */
+	public function list_{{ column_name }}(string $alias = '{{ column_name }}') {
+		$this->list[$alias] = $this->alias . '.{{ column_name }} AS `' . $alias . '`';
+	}
+	
+	/**
+	 * Include the row count {{ table_name }}.{{ column_name }} in your select
+	 * query.
+	 *
+	 * @param string $alias Alias for this column
+	 */
+	public function count_{{ column_name }}(string $alias) {
+		$this->list[$alias] = "COUNT($this->alias.{{ column_name }}) AS `$alias`";
+	}
+	
+	/**
+	 * Include the highest column value of {{ table_name }}.{{ column_name }} in
+	 * your select query.
+	 *
+	 * @param string $alias Alias for this column
+	 */
+	public function max_{{ column_name }}(string $alias) {
+		$this->list[$alias] = "MAX($this->alias.{{ column_name }}) AS `$alias`";
+	}
+	
+	/**
+	 * Include the lowest column value of {{ table_name }}.{{ column_name }} in
+	 * your select query.
+	 *
+	 * @param string $alias Alias for this column
+	 */
+	public function min_{{ column_name }}(string $alias) {
+		$this->list[$alias] = "MIN($this->alias.{{ column_name }}) AS `$alias`";
+	}
+	
+	/**
+	 * Include the average column value of {{ table_name }}.{{ column_name }} in
+	 * your select query.
+	 *
+	 * @param string $alias Alias for this column
+	 */
+	public function avg_{{ column_name }}(string $alias) {
+		$this->list[$alias] = "AVG($this->alias.{{ column_name }}) AS `$alias`";
+	}
+{% if column.data_type in ['int', 'float'] %}
+	
+	/**
+	 * Include the column sum of {{ table_name }}.{{ column_name }} in your select
+	 * query.
+	 *
+	 * @param string $alias Alias for this column
+	 */
+	public function sum_{{ column_name }}(string $alias) {
+		$this->list[$alias] = "SUM($this->alias.{{ column_name }}) AS `$alias`";
+	}
+{% endif %}
+
+{% endfor %}
+	/**
+	 * Clear the list of columns that are included in the select statement. Please
+	 * be aware that if no column is selected, all columns ('*') will be fetched!
+	 */
+	public function none() {
+		$this->list = [];
+	}
+	
+	/**
+	 * The simplest way to list a set of columns. The method has an adaptive 
+	 * argument length. Example:
+	 *
+	 * $this->these('column_name', [
+	 *     'alias' => 'column_alias',
+	 *     'column' => 'column_name'
+	 * ]);
+	 */
+	public function these() {		
+		$arguments = func_get_args();
+		
+		foreach ($arguments as $column) {
+			if (is_array($column)) {
+				$this->list[$column['alias']] = $this->alias . '.' . $column['column'] . ' AS `' . $column['alias'] . '`';
+			} else {
+				$this->list[$column] = $this->alias . '.' . $column . ' AS `' . $column . '`';
+			}
+		}
+	}
+	
+	public function all() {
+{% for column_name, column in table.columns %}
+		$this->list_{{ column_name }}();
+{% endfor %}
+	}
+	
+	/**
+	 * List a custom column.
+	 *
+	 * @param string $custom_column a string representing the column
+	 * @param string $alias The alias to use for the custom column
+	 */
+	public function list(string $custom_column, string $alias) {
+		$this->list[$alias] = "$custom_column AS `$alias`";
+	}
+

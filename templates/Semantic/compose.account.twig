@@ -1,0 +1,55 @@
+{% extends 'index.twig' %}
+
+{% block content %}
+			<main>
+				<div class="ui compact icon menu">
+					<a class="item" href="{{ url.base }}/account/display"><i class="list icon"></i></a>
+					<a class="item" href="{{ url.base }}/setting/ui/User"><i class="cogs icon"></i></a>
+				</div>
+				<div class="ui six column centered grid">
+					<div class="six wide column">
+						<h2>Create user account</h2>
+						<form method="post" action="{{ url.base }}/account/save" class="ui form ajax-form reset">
+							<div class="ui message hidden">
+								<i class="close icon"></i>
+								<div class="header">&nbsp;</div>
+								<ul class="list hidden"></ul>
+							</div>
+							<div class="two fields">
+								<div class="field required">
+									<label>Username / Email address</label>
+									<input name="login" placeholder="Username / Email address" type="text">
+								</div>
+								<div class="field">
+									<label>Account type</label>
+									<select class="ui dropdown" name="type">
+{% for account_type in account_types %}
+										<option value="{{ account_type|lower }}">{{ account_type|capitalize }}</option>
+{% endfor %}
+									</select>
+								</div>
+							</div>
+							<div class="two fields">
+								<div class="field required">
+									<label>Password</label>
+									<input name="password" placeholder="Password" type="password">
+								</div>
+								<div class="field required">
+									<label>Repeat password</label>
+									<input name="repeat_password" placeholder="Repeat password" type="password">
+								</div>
+							</div>
+							<div class="field">
+								<div class="ui slider checkbox">
+									<input tabindex="0" class="hidden" type="checkbox" name="locked" value="1">
+									<label>User account is locked</label>
+								</div>
+							</div>
+							<div class="field">
+								<button class="ui left basic primary labeled icon button" type="submit"><i class="save icon">&nbsp;</i>Create user account</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</main>
+{% endblock %}

@@ -1,0 +1,93 @@
+@mixin button($color) {
+	@if (lightness($color) < 50) {
+		color: $background-color;
+		text-shadow: 1px 1px darken($color, 20%);
+	} @else if (lightness($color) > 75) {
+		color: $font-color;
+		text-shadow: 1px 1px darken($color, 5%);
+	} @else {
+		color: darken($color, 45%);
+		text-shadow: 1px 1px $color;
+	}
+
+	@include background-image(linear-gradient(darken($color, 10), darken($color, 20%)));
+	border: 1px solid darken($color, 10%);
+
+	&:hover, &:focus {
+		@include background-image(linear-gradient($color, darken($color, 10%)));
+	}
+
+	[disabled] {
+		@include background-image(linear-gradient(lighten($color, 5%), $color));
+		border: 1px solid $color;
+		cursor: not-allowed;
+	}
+}
+
+button {
+	white-space: nowrap;
+	outline: 0;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+}
+
+button::-moz-focus-inner {
+	border: 0;
+	padding: 0;
+}
+
+.btn {
+	display: inline-block;
+	padding: 6px 12px;
+	height: 34px;
+	text-decoration: none;
+	text-align: center;
+	vertical-align: middle;
+	cursor: pointer;
+	@include button($default-color);
+	border-radius: $border-radius;
+	@include box-shadow($background-color 0 0 1px inset);
+}
+
+.btn:hover {
+	@include background-image(linear-gradient($default-color, darken($default-color, 10%)));
+}
+
+.btn[disabled] {
+	@include background-image(linear-gradient(lighten($default-color, 5%), $default-color));
+	border: 1px solid $default-color;
+	cursor: not-allowed;
+}
+
+.btn.block {
+	clear: both;
+	display: block;
+	width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.btn.info { @include button($info-color); }
+.btn.success { @include button($success-color); }
+.btn.warning { @include button($warning-color); }
+.btn.error { @include button($error-color); }
+.btn.primary { @include button($primary-color); }
+
+.group {
+	display: flex;
+	
+	.dropdown { overflow: hidden; }
+	
+	> .btn, .dropdown .btn { border-radius: 0;}
+	> .btn:not(:first-child), .dropdown:not(:first-child) .btn { border-left: none; }
+	> .btn:first-child, .dropdown:first-child .btn { border-radius: $border-radius 0 0 $border-radius; }
+	> .btn:last-child, .dropdown:last-child .btn { border-radius: 0 $border-radius $border-radius 0; }
+}
+
+.group.right { justify-content: flex-end; }
+
+.toggle-selectpicker {
+	text-align: left;
+}

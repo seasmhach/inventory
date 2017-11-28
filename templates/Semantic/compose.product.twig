@@ -1,0 +1,51 @@
+{% extends 'index.twig' %}
+
+{% block content %}
+			<main>
+				<div class="ui compact icon menu">
+					<a class="item" href="{{ url.base }}/product/display"><i class="list icon"></i></a>
+					<a class="item" href="{{ url.base }}/setting/ui/Product"><i class="cogs icon"></i></a>
+				</div>
+				<div class="ui six column centered grid">
+					<div class="six wide column">
+						<h2>Save product</h2>
+						<form method="post" action="{{ url.base }}/product/save" class="ui form ajax-form">
+{% if product is defined %}
+							<input type="hidden" name="product_id" value="{{ product.product_id }}">
+{% endif %}
+							<div class="ui message hidden">
+								<i class="close icon"></i>
+								<div class="header">&nbsp;</div>
+								<ul class="list hidden"></ul>
+							</div>
+							<div class="field required">
+								<label>Product name</label>
+								<input name="product_name"{% if product is defined %} value="{{ product.product_name }}"{% endif %} placeholder="Product name" type="text">
+							</div>
+							<div class="field">
+								<label>Product description</label>
+								<textarea name="product_description" cols="60" rows="3" placeholder="Product description">{% if product is defined %}{{ product.product_description }}{% endif %}</textarea>
+							</div>
+							<div class="two fields">
+								<div class="field">
+									<label>Unit</label>
+									<input name="unit"{% if product is defined %} value="{{ product.unit }}"{% endif %}  placeholder="Unit" type="text">
+								</div>
+								<div class="field">
+									<label>Unit abbreviation</label>
+									<input name="unit_abbreviation"{% if product is defined %} value="{{ product.unit_abbreviation }}"{% endif %}  placeholder="Unit abbreviation" type="text">
+								</div>
+								<div class="field">
+									<label>Amount</label>
+									<input name="amount" class="popup"{% if product is defined %} value="{{ product.amount }}"{% endif %}  placeholder="Amount" data-content="How much of the unit does one product contain?" type="text">
+								</div>
+							</div>
+							<div class="field">
+								<button class="ui left primary labeled icon button" type="submit"><i class="save icon">&nbsp;</i>Save product</button>
+								<a href="{{ url.base }}/product/compose"{% if product is not defined %} class="hide"{% endif %} data-display-on="create"><i class="plus icon"></i>Add another product</a>
+							</div>
+						</form>
+					</div>
+				</div>
+			</main>
+{% endblock %}

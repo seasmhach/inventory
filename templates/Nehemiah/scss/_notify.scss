@@ -1,0 +1,50 @@
+@keyframes ease_notification {
+    from { 
+		margin-top: 45px;
+		margin-left: -30px;
+		opacity: 0;
+	}
+    
+	to {
+		margin-top: 15px;
+		margin-left: 0;
+		opacity: 1;
+	}
+}
+
+@keyframes ease_out_notification {
+	from { 
+		right: 0;
+		opacity: 1;
+	}
+
+	to {
+		display: none;
+		right: -100%;
+		opacity: 0;
+	}
+}
+
+#notify-traits {
+	position: fixed;
+	top: 0;
+	right: 1em;
+	width: 40%;
+	z-index: 9999999999;
+	
+	.alert {
+		margin-top: 15px;
+	}
+	
+	.alert.initial {
+		animation-name: ease_notification;
+		animation-duration: 1s;
+		animation-fill-mode: forwards;
+	}
+	
+	.alert.out {
+		animation-name: ease_out_notification;
+		animation-duration: 1s;
+		animation-fill-mode: forwards;
+	}
+}

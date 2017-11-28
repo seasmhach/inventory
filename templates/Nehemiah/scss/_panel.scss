@@ -1,0 +1,91 @@
+@mixin panel($color) {
+	border: 1px solid darken($color, 15%);
+	
+	.head {
+		@if (lightness($color) < 50) {
+			color: $background-color;
+			text-shadow: 1px 1px darken($color, 20%);
+		} @else if (lightness($color) > 75) {
+			color: $font-color;
+			text-shadow: 1px 1px $background-color;
+		} @else {
+			color: darken($color, 45%);
+			text-shadow: 1px 1px lighten($color, 1%);
+		}
+
+		@include background-image(linear-gradient($color, darken($color, 15%)));
+		border-bottom: 1px solid darken($color, 20%);
+	}
+}
+
+.panel {
+	border: 1px solid darken($default-color, 10%);
+	@include border-radius($border-radius);
+	
+	.body {
+		padding: $head-gutter;
+		background-color: $background-color;
+	}
+	
+	.head {
+		padding: $head-gutter;
+		text-shadow: 1px 1px $background-color;
+		@include background-image(linear-gradient(lighten($default-color, 5%), darken($default-color, 10%)));
+		border-bottom: 1px solid darken($default-color, 15%);
+	}
+	
+	.foot {
+		padding: $body-gutter;
+		background-color: $default-color;
+		border-top: 1px solid darken($default-color, 5%);
+		
+		th, td {
+			padding-right: 30px;
+		}
+	}
+	
+	.menu {
+		display: flex;
+		background-color: $default-color;
+		border-bottom: 1px solid darken($default-color, 5%);
+		
+		a {
+			display: inline-block;
+			padding: $body-gutter;
+			color: $font-color;
+		}
+
+		a:hover, a:focus {
+			background-color: darken($default-color, 5%);
+		}
+
+		a.active {
+			background-color: darken($default-color, 10%);
+		}
+	}
+	
+	summary {
+		outline: 0;
+		@include user-select('none');
+	}
+	
+	summary::-webkit-details-marker { display: none; }
+	
+	summary:after {
+		font-family: FontAwesome;
+		content: "\f2d2";
+		float: right;
+		cursor: pointer;
+	}
+}
+
+details.panel[open] summary:after {
+	content: "\f2d1";
+}
+
+.panel.info { @include panel($info-color); }
+.panel.success { @include panel($success-color); }
+.panel.warning { @include panel($warning-color); }
+.panel.error { @include panel($error-color); }
+.panel.primary { @include panel($primary-color); }
+.panel.dark { @include panel($dark-color); }

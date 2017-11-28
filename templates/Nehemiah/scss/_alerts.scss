@@ -1,0 +1,50 @@
+@mixin alert($color) {
+	@include background-image(linear-gradient($color, darken($color, 30%)));
+
+	border: 1px solid darken($color, 15%);
+		
+	@if (lightness($color) < 50) {
+		color: $background-color;
+		text-shadow: 1px 1px darken($color, 20%);
+	} @else if (lightness($color) > 75) {
+		color: $font-color;
+		text-shadow: 1px 1px $background-color;
+	} @else {
+		color: darken($color, 65%);
+		text-shadow: 1px 1px $color;
+	}
+}
+
+.alert {
+	padding: $head-gutter;
+	color: #fff;
+	@include border-radius($border-radius);
+}
+
+.alert.dismiss {
+	position: relative;
+	padding-right: 30px;
+}
+
+.alert.dismiss:before {
+	position: absolute;
+	float: right;
+	top: 50%;
+	right: 10px;
+	transform: translateY(-50%);
+	content: "\f057";
+	font-family: FontAwesome;
+	cursor: pointer;
+}
+
+.alert.info { @include alert($info-color); }
+.alert.success { @include alert($success-color); }
+.alert.warning { @include alert($warning-color); }
+.alert.error { @include alert($error-color); }
+.alert.primary { @include alert($primary-color); }
+
+.alert.info.glow { @include box-shadow($info-bright-shadow); }
+.alert.success.glow { @include box-shadow($success-bright-shadow); }
+.alert.warning.glow { @include box-shadow($warning-bright-shadow); }
+.alert.error.glow { @include box-shadow($error-bright-shadow); }
+.alert.primary.glow { @include box-shadow($primary-bright-shadow); }

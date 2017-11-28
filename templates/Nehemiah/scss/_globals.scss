@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i&subset=cyrillic,cyrillic-ext,greek,greek-ext,latin-ext,vietnamese');
+
+/* COLORS */
+$primary-color: #aeb6cf;
+$success-color: #c6cfae;
+$warning-color: #cfb7ae;
+$info-color: #aec6cf; 
+$error-color: #cfaeb6;
+$dark-color: #444;
+$background-color: #fff;
+$default-color: #eee;
+
+/* MISCELLANEOU */
+$border-radius: 3px;
+$head-gutter: 10px 1em;
+$body-gutter: 5px 1em;
+
+/* FONT */
+$font-family: 'Roboto', sans-serif;
+$letter-spacing: .2px;
+$font-size: 14px;
+$font-color: #444;
+$line-height-base: 1.428571429;
+$line-height: floor(($font-size * $line-height-base));
+$font-size-h1: floor(($font-size * 2.6));
+$font-size-h2: floor(($font-size * 2.15));
+$font-size-h3: ceil(($font-size * 1.7));
+$font-size-h4: ceil(($font-size * 1.25));
+$font-size-h5: $font-size;
+$font-size-h6: ceil(($font-size * 0.85));
+$headings-font-family: 'Open Sans', sans-serif;
+$headings-font-weight: 500;
+$headings-line-height: 1.1;
+$headings-color: $font-color;
+
+/* SHADOWS */
+$shadow: rgba($background-color, 0.6) 0 0 6px;
+$default-shadow: $default-color 0 0 6px;
+$primary-shadow: rgba($primary-color, 0.6) 0 0 6px;
+$success-shadow: rgba($success-color, 0.6) 0 0 6px;
+$warning-shadow: rgba($warning-color, 0.6) 0 0 6px;
+$info-shadow: rgba($info-color, 0.6) 0 0 6px;
+$error-shadow: rgba($info-color, 0.6) 0 0 6px;
+$primary-bright-shadow: darken($primary-color, 15%) 0 0 10px;
+$success-bright-shadow: darken($success-color, 15%) 0 0 10px;
+$warning-bright-shadow: darken($warning-color, 15%) 0 0 10px;
+$info-bright-shadow: darken($info-color, 15%) 0 0 10px;
+$error-bright-shadow: darken($info-color, 15%) 0 0 10px;
+$dark-shadow: rgba($dark-color, 0.6) 0 0 6px;

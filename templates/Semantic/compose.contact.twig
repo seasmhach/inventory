@@ -1,0 +1,99 @@
+{% extends 'index.twig' %}
+
+{% block content %}
+			<main>
+				<div class="ui compact icon menu">
+					<a class="item" href="{{ url.base }}/contact/display"><i class="list icon"></i></a>
+				</div>
+				<div class="ui six column centered grid">
+					<div class="six wide column">
+						<h2>Create contact</h2>
+						<div class="ui divider"></div>
+						<form method="post" action="{{ url.base }}/contact/save" class="ui form ajax-form save reset">
+							<div class="ui message hidden">
+								<i class="close icon"></i>
+								<div class="header">&nbsp;</div>
+								<ul class="list hidden"></ul>
+							</div>
+							<div class="two fields">
+								<div class="field">
+									<label>First name</label>
+									<input type="text" name="first_name" placeholder="First name">
+								</div>
+								<div class="field">
+									<label>Last name</label>
+									<input type="text" name="last_name" placeholder="Last name">
+								</div>
+							</div>
+							<div class="two fields">
+								<div class="field">
+									<label>Organization</label>
+									<input type="text" name="organization" placeholder="Organization">
+								</div>
+								<div class="field">
+									<label>Nick/descriptive -name</label>
+									<input type="text" name="nickname" placeholder="Nick or descriptive name">
+								</div>
+							</div>
+							<div class="three fields">
+								<div class="field">
+									<label>Office phone number</label>
+									<input type="text" name="phone_work" placeholder="Office phone number">
+								</div>
+								<div class="field">
+									<label>Mobile phone number</label>
+									<input type="text" name="phone_mobile" placeholder="Mobile phone number">
+								</div>
+								<div class="field">
+									<label>Home phone number</label>
+									<input type="text" name="phone_home" placeholder="Private phone number">
+								</div>
+								<div class="field">
+									<label>Fax number</label>
+									<input type="text" name="fax" placeholder="Fax number">
+								</div>
+							</div>
+							<div class="two fields">
+								<div class="field">
+									<label>Email address work</label>
+									<input type="text" name="email_work" placeholder="Email address work">
+								</div>
+								<div class="field">
+									<label>Home address private</label>
+									<input type="text" name="email_home" placeholder="Email address private">
+								</div>
+							</div>
+							<h4 class="ui horizontal divider header"><i class="tag icon"></i> Description</h4>
+							<div class="field">
+								<label>Description</label>
+								<textarea name="description" placeholder="Optional description" cols="60" rows="5"></textarea>
+							</div>
+							<h4 class="ui horizontal divider header"><i class="options icon"></i> Options</h4>
+							<div class="three fields">
+								<div class="field">
+									<label>Organic certifier code</label>
+									<input type="text" name="organic_certifier_code" placeholder="Organic certifier code">
+								</div>
+								<div class="field">
+									<label>Tax number</label>
+									<input type="text" name="tax_number" placeholder="Tax number">
+								</div>
+								<div class="field">
+									<label>Our customer number</label>
+									<input type="text" name="customer_number" placeholder="Customer number">
+								</div>
+							</div>
+							<div class="field">
+								<div class="field">
+									<label>Website</label>
+									<input type="text" name="website" placeholder="Website">
+								</div>
+							</div>
+							<div class="field">
+								<button class="ui left basic primary labeled icon button" type="submit"><i class="save icon">&nbsp;</i>Create contact</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</main>
+{% endblock %}

@@ -1,0 +1,104 @@
+{#
+	Here are the setters
+
+	For all columns that allow NULL, you can call the setter without a value to
+	explicitly set it to NULL.
+#}
+{% for column_name, column in table.columns if column.auto_increment == false %}
+{#
+	We have a special setter for date fields that allows you to pass any strtotime
+	parsable string.
+#}
+{% if column.type == 'date' %}
+	/**
+	 * @param {{ column.data_type }}{% if column.null == true %}|null{% endif %} ${{ column_name }} {{ column.comment }} (strtotime parsable)
+	 */
+	public function set_{{ column_name }}({{ column.data_type }} ${{ column_name }}{% if column.null == true %} = null{% endif %}) {
+{% if column.null == true %}
+		if (is_null(${{ column_name }})) {
+			$this->columns['{{ column_name }}'] = [
+				'value' => ${{ column_name }},
+				'alias' => $this->alias,
+				'operator' => self::ASSIGN,
+			];
+		} else {
+			$this->columns['{{ column_name }}'] = [
+				'value' => date("Y-m-d", strtotime(${{ column_name }})),
+				'alias' => $this->alias,
+				'operator' => self::ASSIGN,
+			];
+		}
+{% else %}
+		$this->columns['{{ column_name }}'] = [
+			'value' => date("Y-m-d", strtotime(${{ column_name }})),
+			'alias' => $this->alias,
+			'operator' => self::ASSIGN,
+		];
+{% endif %}
+	}
+{#
+	Much like the date fields we have a special setter for datetime fields. You
+	can pass any strtotime parsable string.
+#}
+{% elseif column.type == 'datetime' %}
+	/**
+	 * @param {{ column.data_type }}{% if column.null == true %}|null{% endif %} ${{ column_name }} {{ column.comment }} (strtotime parsable)
+	 */
+	public function set_{{ column_name }}({{ column.data_type }} ${{ column_name }}{% if column.null == true %} = null{% endif %}) {
+{% if column.null == true %}
+		if (is_null(${{ column_name }})) {
+			$this->columns['{{ column_name }}'] = [
+				'value' => ${{ column_name }},
+				'alias' => $this->alias,
+				'operator' => self::ASSIGN,
+			];
+		} else {
+			$this->columns['{{ column_name }}'] = [
+				'value' => date("Y-m-d H:i:s", strtotime(${{ column_name }})),
+				'alias' => $this->alias,
+				'operator' => self::ASSIGN,
+			];
+		}
+{% else %}
+		$this->columns['{{ column_name }}'] = [
+			'value' => date("Y-m-d H:i:s", strtotime(${{ column_name }})),
+			'alias' => $this->alias,
+			'operator' => self::ASSIGN,
+		];
+{% endif %}
+	}
+{% else %}
+	/**
+	 * @param {{ column.data_type }}{% if column.null == true %}|null{% endif %} ${{ column_name }} {{ column.comment }}
+	 * @param int $operator Used in update queries to allow for assign, increment or decrement
+	 */
+	public function set_{{ column_name }}({{ column.data_type }} ${{ column_name }}{% if column.null == true %} = null{% endif %}, int $operator = self::ASSIGN) {
+		$this->columns['{{ column_name }}'] = [
+			'value' => ${{ column_name }},
+			'alias' => $this->alias,
+			'operator' => $operator,
+		];
+	}
+{% endif %}
+
+{% endfor %}
+	public function set(array $columns) {
+{% for column_name, column in table.columns if column.auto_increment == false %}
+{% if true == column.null %}
+		if (isset($columns['{{ column_name }}'])) {
+			if (empty($columns['{{ column_name }}'])) {
+				$this->set_{{ column_name }}(); // Set to NULL
+			} else {
+				$this->set_{{ column_name }}($columns['{{ column_name }}']);
+			}
+		}
+
+{% else %}
+		if (isset($columns['{{ column_name }}'])) {
+			$this->set_{{ column_name }}($columns['{{ column_name }}']);
+		}
+
+{% endif %}
+{% endfor %}
+	}
+	

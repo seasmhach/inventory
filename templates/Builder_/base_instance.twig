@@ -1,0 +1,549 @@
+{#
+	This template created a feature rich instance but it is not the most optimited
+	on for speed since it reuses the same loop over and over again. If you build
+	this template every once in a while you're abolutely fine. If you build this
+	often/on the fly, you micht want to use another template.
+
+	Lets start with opening the PHP tag :)
+#}
+<?php
+{# Including the license #}
+{% include 'license.twig' %}
+{# Define and including namespaces #}
+namespace {{ namespace }};
+use Nehemiah\DB;
+use PDO;
+
+/**
+ * Generated with Builder version:
+ */
+abstract class {{ base_instance }} {
+	use DB; // Trait for database connection.
+	
+	/**
+	 * @var string MySQL table name
+	 */
+	protected $table = '{{ table }}';
+	
+	/**
+	 * @var string MySQL table alias 
+	 */
+	protected $alias = '{{ table }}';
+	
+	/**
+	 * A associative array of columns to get in the MySQL SELECT statement. Use
+	 * the alias for the column as key and the columns name as value.
+	 * 
+	 * All fields are set to be selected by default.
+	 * 
+	 * @var array Columns list alias/column
+	 */
+	protected $get_columns = [
+{% for column in columns %}
+		'{{ column.name }}' => '{{ column.name }}',
+{% endfor %}
+	];
+	
+	/**
+	 * An associative array of columns to set in a MySQL CREATE or UPDATE
+	 * statement. Use the column name as key and the value as value.
+	 * 
+	 * Use the setters to manipulate this list.
+	 * 
+	 * @var array Column list column/value
+	 */
+	protected $set_columns = [];
+	
+	/**
+	 * An associative array of columns fetched in a MySQL SELECT statement. The
+	 * key will be the column or alias name and the value the value fetched in
+	 * the query.
+	 * 
+	 * @var array Column list column|alias/value
+	 */
+	protected $columns = [];
+
+	/**
+	 * A list of objects joining this object.
+	 * 
+	 * @var array List of objects joining this object
+	 */
+	protected $joins = [];
+	
+	/**
+	 * You can instantiate this object with record values if you got the from a
+	 * different source. This then allows you to use the getters without
+	 * performing a query. This is mostly used by {{ base_collection }} to return
+	 * this object without having to query the database again.
+	 * 
+	 * @param array $columns Array of columns values.
+	 */
+	public function __construct(string $alias = '{{ table }}') {
+		$this->alias = $alias;
+	}
+	
+	/**
+	 * Returns the table name
+	 * 
+	 * The 'get_' prefix is omitted because it is reserved for column value setters
+	 * 
+	 * @return string Name of table on which CRUD is to be performed
+	 */
+	public function table() {
+		return $this->table;
+	}
+	
+	/**
+	 * Returns the table alias
+	 * 
+	 * The 'get_' prefix is omitted because it is reserved for column value setters
+	 * 
+	 * @return string Name of table alias on which CRUD is to be performed
+	 */
+	public function alias() {
+		return $this->alias;
+	}
+	
+{% include 'column_list_methods.twig' %}
+	
+{% include 'setters.twig' %}
+{% include 'getters.twig' %}
+	
+	/**
+	 * Get the full SELECT result as an associative array.
+	 * 
+	 * @return array Complete SELECT result as column|alias/value pairs
+	 */
+	public function retrieve() {
+		return $this->columns;
+	}
+	
+	/**
+	 * Get the full SELECT result as JSON string.
+	 * 
+	 * @return string Full SELECT result as JSON string
+	 */
+	public function retrieve_json() {
+		return json_encode($this->columns);
+	}
+	
+	/**
+	 * Get the full SELECT result as XML string.
+	 * 
+	 * @param sting Name of XML root element
+	 * @return string Full SELECT result as XML string
+	 */
+	public function retrieve_xml(string $root_element = '{{ table }}') {
+		$xml = "<$root_element>\n";
+		
+		foreach ($this->columns as $column => $value) {
+			$xml .= "\t<$column>$value</$column>\n";
+		}
+		
+		$xml .= "</$root_element>\n";
+		
+		return $xml;
+	}
+
+{% include 'join.twig' with {'join_namespace' : instance }%}
+	/**
+	 * This method gets the columns and joins for the select statement. it calls
+	 * the same method in the joined objects to get their columns.
+	 * 
+	 * @param array $columns Array reference to be filled with columns to select from the database
+	 * @param array $joins Array reference to be filled with MySQL join clauses
+	 */
+	public function select_information(array &$columns = [], array &$joins = []) {
+		foreach ($this->get_columns as $alias => $column) {
+			$columns[$alias] = $this->alias . '.' . $column . ' AS `' . $alias . '`';
+		}
+	
+		foreach ($this->joins as $join) {
+			$joins[$join['alias']] = $join['sql'];
+			$join['object']->select_information($columns, $joins);
+		}
+	}
+
+{#
+	The public CRUD methods. Only one Create method will be generated. For the
+	other CRUD parts one method will be created for primary key and each unique
+	key.
+#}
+	/**
+	 * The C in CRUD.
+	 *
+	 * Takes the settings you supplied with the setters and tries to insert them
+	 * into the database.
+	 * 
+	 * @return bool True on success, False on failure
+	 */
+	public function create() {
+		return $this->crud_create();
+	}
+
+	/**
+	 * The R in CRUD.
+	 *
+	 * Tries to read a record from the database.
+	 * 
+{% for column in primary_key_columns %}
+	 * @param {{ column.php_type }} ${{ column.name }} {{ column.comment }}
+{% endfor %}
+	 * @return bool True on success, False on failure or no matching record
+	 */
+	public function read({% for column in primary_key_columns %}{{ column.php_type }} ${{ column.name }}{% if false == loop.last %}, {% endif %}{% endfor %}) {
+		$clause = "{% for column in primary_key_columns %}$this->alias.{{ column.name }} = :condition_{{ column.name }}{% if loop.last == false %}\nAND {% endif %}{% endfor %}";
+		$parameters = [
+{% for column in primary_key_columns %}
+			':condition_{{ column.name }}' => ${{ column.name }},
+{% endfor %}
+		];
+		
+		return $this->crud_read($clause, $parameters);
+	}
+	
+{% for index in indexes %}
+	/**
+	 * The R in CRUD, with a little twist. This method takes unique key columns
+	 * as its arguments. Check the parameter list below.
+	 *
+	 * Tries to read a record from the database.
+	 * 
+{% for column in index %}
+	 * @param {{ columns[column].php_type }} ${{ column }} {{ columns[column].comment }}
+{% endfor %}
+	 * @return bool True on success, False on failure or no matching record
+	 */
+	public function read_by_{% for column in index %}{{ column }}{% if false == loop.last %}_and_{% endif %}{% endfor %}({% for column in index %}{{ columns[column].php_type }} ${{ column }}{% if false == loop.last %}, {% endif %}{% endfor %}) {
+		$clause = "{% for column in index %}$this->alias.{{ column }} = :condition_{{ column }}{% if false == loop.last %}\nAND {% endif %}{% endfor %}";
+		$parameters = [
+{% for column in index %}
+			':condition_{{ column }}' => ${{ column }},
+{% endfor %}
+		];
+		
+		return $this->crud_read($clause, $parameters);
+	}
+
+{% endfor %}
+	/**
+	 * The U in CRUD.
+	 *
+	 * Tries to update a record from the database.
+	 * 
+{% for column in primary_key_columns %}
+	 * @param {{ column.php_type }} ${{ column.name }} {{ column.comment }}
+{% endfor %}
+	 * @return bool|null True on success and updated record, False on failure, null
+	 * on success but if the record didn't change.
+	 */
+	public function update({% for column in primary_key_columns %}{{ column.php_type }} ${{ column.name }}{% if false == loop.last %}, {% endif %}{% endfor %}) {
+		$clause = "{% for column in primary_key_columns %}$this->alias.{{ column.name }} = :condition_{{ column.name }}{% if loop.last == false %}\nAND {% endif %}{% endfor %}";
+		$parameters = [
+{% for column in primary_key_columns %}
+			':condition_{{ column.name }}' => ${{ column.name }},
+{% endfor %}
+		];
+		
+		return $this->crud_update($clause, $parameters);
+	}
+	
+{% for index in indexes %}
+	/**
+	 * The U in CRUD, with a little twist. This method takes unique key columns
+	 * as its arguments. Check the parameter list below.
+	 *
+	 * Tries to update a record from the database.
+	 * 
+{% for column in index %}
+	 * @param {{ columns[column].php_type }} ${{ column }} {{ columns[column].comment }}
+{% endfor %}
+	 * @return bool True on success, False on failure or no matching record
+	 */
+	public function update_by_{% for column in index %}{{ column }}{% if false == loop.last %}_and_{% endif %}{% endfor %}({% for column in index %}{{ columns[column].php_type }} ${{ column }}{% if false == loop.last %}, {% endif %}{% endfor %}) {
+		$clause = "{% for column in index %}$this->alias.{{ column }} = :condition_{{ column }}{% if false == loop.last %}\nAND {% endif %}{% endfor %}";
+		$parameters = [
+{% for column in index %}
+			':condition_{{ column }}' => ${{ column }},
+{% endfor %}
+		];
+		
+		return $this->crud_update($clause, $parameters);
+	}
+
+{% endfor %}
+	/**
+	 * The D in CRUD.
+	 *
+	 * Tries to delete a record from the database.
+	 * 
+{% for column in primary_key_columns %}
+	 * @param {{ column.php_type }} ${{ column.name }} {{ column.comment }}
+{% endfor %}
+	 * @return bool|null True on success and updated record, False on failure, null
+	 * on success but if the record didn't change.
+	 */
+	public function delete({% for column in primary_key_columns %}{{ column.php_type }} ${{ column.name }}{% if false == loop.last %}, {% endif %}{% endfor %}) {
+		$clause = "{% for column in primary_key_columns %}$this->alias.{{ column.name }} = :condition_{{ column.name }}{% if loop.last == false %}\nAND {% endif %}{% endfor %}";
+		$parameters = [
+{% for column in primary_key_columns %}
+			':condition_{{ column.name }}' => ${{ column.name }},
+{% endfor %}
+		];
+		
+		return $this->crud_delete($clause, $parameters);
+	}
+	
+{% for index in indexes %}
+	/**
+	 * The D in CRUD, with a little twist. This method takes unique key columns
+	 * as its arguments. Check the parameter list below.
+	 *
+	 * Tries to delete a record from the datanase.
+	 * 
+{% for column in index %}
+	 * @param {{ columns[column].php_type }} ${{ column }} {{ columns[column].comment }}
+{% endfor %}
+	 * @return bool True on success, False on failure or no matching record
+	 */
+	public function delete_by_{% for column in index %}{{ column }}{% if false == loop.last %}_and_{% endif %}{% endfor %}({% for column in index %}{{ columns[column].php_type }} ${{ column }}{% if false == loop.last %}, {% endif %}{% endfor %}) {
+		$clause = "{% for column in index %}$this->alias.{{ column }} = :condition_{{ column }}{% if false == loop.last %}\nAND {% endif %}{% endfor %}";
+		$parameters = [
+{% for column in index %}
+			':condition_{{ column }}' => ${{ column }},
+{% endfor %}
+		];
+		
+		return $this->crud_delete($clause, $parameters);
+	}
+
+{% endfor %}
+	/**
+	 * Checks the existence of a record by primary key.
+	 * 
+{% for column in primary_key_columns %}
+	 * @param {{ column.php_type }} ${{ column.name }} {{ column.comment }}
+{% endfor %}
+	 * @return bool True record exists, False record does not exist
+	 */
+	public function check_existence({% for column in primary_key_columns %}{{ column.php_type }} ${{ column.name }}{% if false == loop.last %}, {% endif %}{% endfor %}) {
+		$clause = "{% for column in primary_key_columns %}$this->alias.{{ column.name }} = :condition_{{ column.name }}{% if loop.last == false %}\nAND {% endif %}{% endfor %}";
+		$parameters = [
+{% for column in primary_key_columns %}
+			':condition_{{ column.name }}' => ${{ column.name }},
+{% endfor %}
+		];
+		
+		return $this->exists($clause, $parameters);
+	}
+	
+{% for index in indexes %}
+	/**
+	 * Checks the existence of a record by unique key.
+	 * 
+{% for column in index %}
+	 * @param {{ columns[column].php_type }} ${{ column }} {{ columns[column].comment }}
+{% endfor %}
+	 * @return bool True record exists, False record does not exist
+	 */
+	public function check_existence_by_{% for column in index %}{{ column }}{% if false == loop.last %}_and_{% endif %}{% endfor %}({% for column in index %}{{ columns[column].php_type }} ${{ column }}{% if false == loop.last %}, {% endif %}{% endfor %}) {
+		$clause = "{% for column in index %}$this->alias.{{ column }} = :condition_{{ column }}{% if false == loop.last %}\nAND {% endif %}{% endfor %}";
+		$parameters = [
+{% for column in index %}
+			':condition_{{ column }}' => ${{ column }},
+{% endfor %}
+		];
+		
+		return $this->exists($clause, $parameters);
+	}
+
+{% endfor %}	
+	/**
+	 * The workhorse behind the convenience methods for joining other tables.
+	 * 
+	 * @param obj $object An object to join
+	 * @param array $columns The columns conditional for this join
+	 * @param string $position Join position INNER, LEFT, RIGHT
+	 */
+	protected function join($object, array $columns, string $position) {
+		$alias = $object->alias();
+		$table = $object->table();
+		$conditions = [];
+		
+		foreach ($columns as $left_side_column => $right_side_column) {
+			$conditions[] = $this->alias . '.' . $left_side_column . ' = ' . $alias . '.' . $right_side_column;
+		}
+		
+		$sql = $position . " JOIN `" . $table . "` AS `" . $alias . "`\n";
+		$sql .= "ON " . implode(' AND ', $conditions) . "\n";
+	
+		$join = [
+			'object' => $object,
+			'columns' => $columns,
+			'position' => $position,
+			'table' => $table,
+			'alias' => $alias,
+			'sql' => $sql,
+		];
+		
+		$this->joins[] = $join;
+	}
+	
+	/**
+	 * CreateRUD workhorse.
+	 * 
+	 * @return boolean True on success, false on failure
+	 */
+	protected function crud_create() {
+		$pdo = $this->pdo();
+	
+		$sql = "INSERT IGNORE INTO `$this->table` (`" . implode('`, `', array_keys($this->set_columns)) . "`) \n";
+		$sql .= "VALUES (:" . implode(', :', array_keys($this->set_columns)) . ")\n";
+		
+		$statement = $pdo->prepare($sql);
+		
+		foreach ($this->set_columns as $column => $value) {		
+			if (is_null($value)) {
+				$statement->bindValue(':' . $column, null, PDO::PARAM_NULL);
+			} else {
+				$statement->bindValue(':' . $column, $value);
+			}
+		}
+
+		if (true === $statement->execute()) {
+			// Set current column list to the values just inserted into the database
+			$this->columns = $this->set_columns;
+			$this->set_columns = [];
+
+{% if 1 == primary_key_columns|length and true == primary_key_columns.0.auto_increment %}
+			// Add the auto incrementing primary key to the current column list
+			return $this->columns['{{ primary_key_columns.0.name }}'] = (int) $pdo->lastInsertId();
+{% else %}
+			return true;
+{% endif %}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * CReadUD workhorse.
+	 * 
+	 * @param string $clause Preformatted join clause
+	 * @param array $parameters Key value list of parameters to pass to PDOStatement
+	 * @return boolean True on success, false on failure
+	 */
+	protected function crud_read(string $clause, array $parameters) {
+		$pdo = $this->pdo();
+		$columns = $joins = [];
+		$this->select_information($columns, $joins);
+		
+		$sql = "SELECT " . implode(", ", $columns) . "\n";		
+		$sql .= "FROM `$this->table` AS `$this->alias`\n";
+		$sql .= implode($joins);
+		$sql .= "WHERE " . $clause;
+		
+		$statement = $pdo->prepare($sql);
+
+		if (true === $statement->execute($parameters) && 1 === $statement->rowCount()) {
+			$this->columns = $statement->fetch(PDO::FETCH_ASSOC);
+
+			return true;
+		}
+
+		return false;
+	}
+	
+	/**
+	 * CRUpdateD workhorse.
+	 * 
+	 * @param string $clause Preformatted join clause
+	 * @param array $parameters Key value list of parameters to pass to PDOStatement
+	 * @return boolean True on success, false on failure
+	 */
+	protected function crud_update(string $clause, array $parameters) {
+		$pdo = $this->pdo();
+		$set = [];
+		
+		foreach ($this->set_columns as $column => $value) {
+			$set[] = "$this->alias.$column = :$column";
+			$parameters[':' . $column] = $value;
+		}
+		
+		$sql = "UPDATE IGNORE `$this->table` AS `$this->alias`\n";
+		$sql .= "SET " . implode(', ', $set) . "\n";
+		$sql .= "WHERE " . $clause;
+		
+		$statement = $pdo->prepare($sql);
+		
+		foreach ($parameters as $column => $value) {
+			if (is_null($value)) {
+				$statement->bindValue($column, null, PDO::PARAM_NULL);
+			} else {
+				$statement->bindValue($column, $value);
+			}
+		}
+		
+		if (true === $statement->execute()) {
+			if (0 < $statement->rowCount()) {
+				// Merge changes into current column list
+				$this->columns = array_merge($this->columns, $this->set_columns);
+			
+				return true;
+			} else {
+				return null;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * CRUDelete workhorse.
+	 * 
+	 * @param string $clause Preformatted join clause
+	 * @param array $parameters Key value list of parameters to pass to PDOStatement
+	 * @return boolean True on success, false on failure
+	 */
+	protected function crud_delete(string $clause, array $parameters) {
+		$pdo = $this->pdo();
+		
+		$sql = "DELETE FROM `$this->table` USING `$this->table` AS `$this->alias`\n";
+		$sql .= "WHERE " . $clause;
+		
+		$statement = $pdo->prepare($sql);
+		
+		if (true === $statement->execute($parameters)) {
+			if (0 < $statement->rowCount()) {
+				return true;
+			} else {
+				return null;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Check existense workhorse.
+	 * 
+	 * @param string $clause Preformatted join clause
+	 * @param array $parameters Key value list of parameters to pass to PDOStatement
+	 * @return boolean True on success, false on failure
+	 */
+	protected function exists(string $clause, array $parameters) {
+		$pdo = $this->pdo();
+		
+		$sql = "SELECT 1\n";		
+		$sql .= "FROM `$this->table`\n";
+		$sql .= "WHERE " . $clause;
+		
+		$statement = $pdo->prepare($sql);
+
+		if (true === $statement->execute($parameters) && 1 === $statement->rowCount()) {
+			return true;
+		}
+
+		return false;
+	}
+}

@@ -1,0 +1,57 @@
+@mixin pill_color($color) {
+	@if (lightness($color) < 50) {
+		color: $background-color;
+		text-shadow: 1px 1px darken($color, 20%);
+	} @else if (lightness($color) > 75) {
+		color: $font-color;
+		text-shadow: 1px 1px lighten($color, 10%);
+	} @else {
+		color: darken($color, 45%);
+		text-shadow: 1px 1px lighten($color, 6%);
+	}
+}
+
+@mixin pill($color) {
+	li {
+		a {
+			@include pill_color($color);
+			background-color: $color;
+			border: 1px solid darken($color, 15%);
+		}
+		
+		a:hover {
+			@include pill_color(lighten($color, 2%));
+			border: 1px solid darken($color, 13%);
+			background-color: lighten($color, 2%);
+			
+		}
+		
+		a.active {
+			@include pill_color(darken($color, 10%));
+			border: 1px solid darken($color, 25%);
+			background-color: darken($color, 10%);
+		}
+	}
+}
+ 
+.pills {
+	display: flex;
+	
+	@include pill($default-color);
+	
+	li {
+		padding: 1em 0;
+
+		a {
+			padding: 6px 1em;
+			margin-right: 1em;
+			border-radius: $border-radius;
+		}
+	}
+}
+
+.pills.success { @include pill($success-color); }
+.pills.info { @include pill($info-color); }
+.pills.warning { @include pill($warning-color); }
+.pills.error { @include pill($error-color); }
+.pills.primary { @include pill($primary-color); }

@@ -1,0 +1,48 @@
+{% extends 'index.twig' %}
+
+{% block content %}
+			<main>
+				<div class="ui compact icon menu">
+					<a class="item" href="{{ url.base }}/contact/compose"><i class="address book icon"></i></a>
+				</div>
+				<div class="ui twelve column centered grid">
+					<div class="twelve wide column">
+						<h2>Contact list</h2>
+						<div class="ui divider"></div>
+						<table class="ui celled compact table records" id="user-ui-table" data-insert="append">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Organization</th>
+									<th>Mobile phone</th>
+									<th>Office phone</th>
+									<th>Private phone</th>
+									<th>E-mail work</th>
+									<th>E-mail private</th>
+									<th>Options</th>
+								</tr>
+							</thead>
+							<tbody>
+{% for contact in contacts %}
+								<tr data-record="{{ contact.contact_id }}">
+									<td>{{ contact.first_name }} {{ contact.last_name }}</td>
+									<td>{{ contact.organization }}</td>
+									<td>{{ contact.phone_mobile }}</td>
+									<td>{{ contact.phone_work }}</td>
+									<td>{{ contact.phone_home }}</td>
+									<td>{{ contact.email_work }}</td>
+									<td>{{ contact.email_home }}</td>
+									<td class="collapsing">
+										<a href="{{ url.base }}/contact/edit/{{ contact.contact_id }}"><i class="edit icon"></i></a>
+										<a href="{{ url.base }}/contact/address-ui/{{ contact.contact_id }}"><i class="map signs icon"></i></a>
+										<a href="{{ url.base }}/contact/delete/{{ contact.contact_id }}" class="ajax" data-confirm="Are you sure you want to delete this contact?" data-message="#user-ajax-link-message" data-remove="record"><i class="delete icon"></i></a>
+									</td>
+								</tr>
+{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</main>
+{% include 'confirm-dialog.twig' %}
+{% endblock %}

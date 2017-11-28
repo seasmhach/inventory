@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="{{ url.base }}/">
+		<title>Tribal Trading</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="{{ url.vendor }}/semantic/ui/dist/semantic.min.css" rel="stylesheet">
+		<link href="{{ url.templates }}/Semantic/css/semantic.css" rel="stylesheet">
+	</head>
+	<body>
+		<div class="ui four column centered grid login">
+			<div class="column">
+				<div class="ui items">
+					<div class="item">
+						<div class="ui tiny image">
+							<img src="{{ url.templates }}/Semantic/images/logo.png">
+						</div>
+						<div class="middle aligned content">
+							<span class="header">Tribal Trading</span>
+						</div>
+					</div>
+				</div>
+			</div>
+{% if login_error is not null %}
+			<div class="four column centered row">
+				<div class="column">
+					<p class="ui error message">{{ login_error }}</p>
+				</div>
+			</div>
+{% endif %}
+{% if logged_out is not null %}
+			<div class="four column centered row">
+				<div class="column">
+					<p class="ui success message">You are logged out.</p>
+				</div>
+			</div>
+{% endif %}
+			<div class="four column centered row">
+				<div class="column">
+					<form method="post" action="{{ url.base }}/account/authenticate" class="ui form">
+						<div class="field">
+							<div class="ui right left icon input">
+								<i class="user icon"></i>
+								<input name="login" placeholder="Username" type="text">
+							</div>
+						</div>
+						<div class="field">
+							<div class="ui right labeled left icon input">
+								<i class="key icon"></i>
+								<input name="password" placeholder="Password" type="password">
+								<button type="submit" class="ui tag label blue	">Sign In</button>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<script src="https://cdn.jsdelivr.net/g/jquery@3.2.1,jquery.form@4.2.1"></script>
+		<script src="{{ url.vendor }}/semantic/ui/dist/semantic.min.js"></script>
+	</body>
+</html>

@@ -1,0 +1,9 @@
+.tabs {
+	[data-toggle="tab"] {
+		outline: none;
+	}
+	
+	.tab:not(.active) {
+		display: none;
+	}
+}

@@ -1,0 +1,97 @@
+{% for foreign_key in table.foreign_keys %}
+	/**
+	 * @return \Builder\{{ foreign_key.namespace }}
+	 */
+	public function inner_join_{{ foreign_key.table }}_by{% for left_column, right_column in foreign_key.columns %}_{{ left_column }}{% if false == loop.last %}_and{% endif %}{% endfor %}(string $alias = '{{ foreign_key.table }}') {
+		${{ foreign_key.table }} = new {{ foreign_key.namespace }}($alias);
+		$sql = "INNER JOIN `{{ foreign_key.table }}` AS `$alias`";
+		$sql .= "\n\tON";
+		$sql .= "{% for left_column, right_column in foreign_key.columns %}{% if false == loop.first %}\n\tAND{% endif %} $this->alias.{{ left_column }} = $alias.{{ right_column }}{% endfor %}";
+		
+		$this->joins[$alias] = [
+			'builder' => ${{ foreign_key.table }},
+			'sql' => $sql,
+		];
+		
+		return ${{ foreign_key.table }};
+	}
+
+	/**
+	 * @return \Builder\{{ foreign_key.namespace }}
+	 */
+	public function left_join_{{ foreign_key.table }}_by{% for left_column, right_column in foreign_key.columns %}_{{ left_column }}{% if false == loop.last %}_and{% endif %}{% endfor %}(string $alias = '{{ foreign_key.table }}') {
+		${{ foreign_key.table }} = new {{ foreign_key.namespace }}($alias);
+		$sql = "LEFT JOIN `{{ foreign_key.table }}` AS `$alias`";
+		$sql .= "\n\tON";
+		$sql .= "{% for left_column, right_column in foreign_key.columns %}{% if false == loop.first %}\n\tAND{% endif %} $this->alias.{{ left_column }} = $alias.{{ right_column }}{% endfor %}";
+		
+		$this->joins[$alias] = [
+			'builder' => ${{ foreign_key.table }},
+			'sql' => $sql,
+		];
+		
+		return ${{ foreign_key.table }};
+	}
+	
+	/**
+	 * @return \Builder\{{ foreign_key.namespace }}
+	 */
+	public function right_join_{{ foreign_key.table }}_by{% for left_column, right_column in foreign_key.columns %}_{{ left_column }}{% if false == loop.last %}_and{% endif %}{% endfor %}(string $alias = '{{ foreign_key.table }}') {
+		${{ foreign_key.table }} = new {{ foreign_key.namespace }}($alias);
+		$sql = "RIGHT JOIN `{{ foreign_key.table }}` AS `$alias`";
+		$sql .= "\n\tON";
+		$sql .= "{% for left_column, right_column in foreign_key.columns %}{% if false == loop.first %}\n\tAND{% endif %} $this->alias.{{ left_column }} = $alias.{{ right_column }}{% endfor %}";
+		
+		$this->joins[$alias] = [
+			'builder' => ${{ foreign_key.table }},
+			'sql' => $sql,
+		];
+		
+		return ${{ foreign_key.table }};
+	}
+
+{% endfor %}
+{% for ref in table.references %}
+	public function inner_join_by_{% for col in ref %}{{ col }}{% if false == loop.last %}_and_{% endif %}{% endfor %}(Base $subquery, string $alias) {
+		$sql = "INNER JOIN\n\t";
+		$sql .= '(' . preg_replace("/\n/", "\n\t", $subquery->sql()) . ") AS `$alias`";
+		$sql .= "\nON";
+{% for col in ref %}
+		$sql .= "\n\t$this->alias.{{ col }} = $alias.{{ col }}";
+{% if false == loop.last %}
+		$sql .= "\nAND";
+{% endif %}
+{% endfor %}
+		
+		$this->joins[$alias] = $sql;
+	}
+	
+	public function left_join_by_{% for col in ref %}{{ col }}{% if false == loop.last %}_and_{% endif %}{% endfor %}(Base $subquery, string $alias) {
+		$sql = "LEFT JOIN\n\t";
+		$sql .= '(' . preg_replace("/\n/", "\n\t", $subquery->sql()) . ") AS `$alias`";
+		$sql .= "\nON";
+{% for col in ref %}
+		$sql .= "\n\t$this->alias.{{ col }} = $alias.{{ col }}";
+{% if false == loop.last %}
+		$sql .= "\nAND";
+{% endif %}
+{% endfor %}
+		
+		$this->joins[$alias] = $sql;
+	}
+	
+	public function right_join_by_{% for col in ref %}{{ col }}{% if false == loop.last %}_and_{% endif %}{% endfor %}(Base $subquery, string $alias) {
+		$sql = "RIGHT JOIN\n\t";
+		$sql .= '(' . preg_replace("/\n/", "\n\t", $subquery->sql()) . ") AS `$alias`";
+		$sql .= "\nON";
+{% for col in ref %}
+		$sql .= "\n\t$this->alias.{{ col }} = $alias.{{ col }}";
+{% if false == loop.last %}
+		$sql .= "\nAND";
+{% endif %}
+{% endfor %}
+		
+		$this->joins[$alias] = $sql;
+	}
+	
+{% endfor %}

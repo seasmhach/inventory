@@ -1,0 +1,73 @@
+{#
+	This files contains methods to add columns and aliasses to the list of columns
+	that get fetched in a MySQL select statement.
+#}
+{% for column in columns %}
+	/**
+	 * Add {{ column.comment }} ({{ column.name }}) to the list of columns that get fetched in a
+	 * MySQL SELECT statement.
+	 */
+	public function add_{{ column.name }}() {
+		$this->get_columns['{{ column.name }}'] = '{{ column.name }}';
+	}
+	
+	/**
+	 * Add {{ column.comment }} ({{ column.name }}) to the list of columns that get fetched in a
+	 * MySQL SELECT statement but alias the column name to the given string.
+	 *
+	 * @param string Alias for column
+	 */
+	public function add_{{ column.name }}_as(string $alias) {
+		$this->get_columns[$alias] = '{{ column.name }}';
+	}
+	
+	public function add_sum_{{ column.name }} ($alias = '{{ column.name }}') {
+		$this->get_function_columns[$alias] = 'SUM({{ table }}.{{ column.name }})';
+	}
+	
+	public function not_{{ column.name }}() {
+		unset($this->get_columns['{{ column.name }}']);
+	}
+	
+	public function group_by_{{ column.name }} () {
+		$this->group_by[] = '{{ table }}.{{ column.name }}';
+	}
+	
+{% endfor %}
+	public function group_by(string $group_by) {
+		$this->group_by[] = $group_by;
+	}
+
+	/**
+	 * Resets the columns to get in a MySQL SELECT statement to the class' default.
+	 */
+	public function reset() {
+		$this->get_columns = [
+{% for column in columns %}
+			'{{ column.name }}' => '{{ column.name }}',
+{% endfor %}
+		];
+	}
+	
+	/**
+	 * Clear the lists of columns that should be fetched in a MySQL SELECT statement
+	 */
+	public function none() {
+		$this->get_columns = [];
+	}
+	
+	public function only($columns) {
+		$this->get_columns = [];
+
+		foreach ((array) $columns as $alias => $column) {
+			if (is_string($alias)) {
+				$this->get_columns[$alias] = $column;
+			} else {
+				$this->get_columns[$column] = $column;
+			}
+		}
+	}
+	
+	public function add_custom_function($function, $alias) {
+		$this->get_function_columns[$alias] = $function;
+	}

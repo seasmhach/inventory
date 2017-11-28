@@ -1,0 +1,86 @@
+{% extends 'index.twig' %}
+
+{% block content %}
+			<main>
+				<div class="ui compact icon menu">
+					<a class="item popup" href="{{ url.base }}/product/compose" data-content="Create product"><i class="cube icon"></i></a>
+					<a class="item popup" href="{{ url.base }}/setting/ui/Product" data-content="Settings"><i class="cogs icon"></i></a>
+				</div>
+
+				<div class="ui grid centered">
+					<div class="three wide column">
+						<h5 class="ui horizontal divider header"><i class="filter icon"></i>Filter</h5>
+						<div class="ui segment">
+							<form method="get" action="{{ url.base }}/product/display" class="ui form">
+								<div class="field">
+									<label>Product name</label>
+									<input type="text" name="filter[name]" placeholder="Filter by name"{% if filter.name is defined %} value="{{ filter.name }}"{% endif %}>
+								</div>
+								<div class="field">
+									<label>Stock keeping unit</label>
+									<input type="text" name="filter[sku]" placeholder="Filter by SKU"{% if filter.sku is defined %} value="{{ filter.sku }}"{% endif %}>
+								</div>
+								<div class="field">
+									<label>Inventory status</label>
+									<select name="filter[inventory]" class="dropdown">
+										<option value="all"{% if filter.inventory is defined and filter.inventory == 'all' %} selected{% endif %}>View all products</option>
+										<option value="in_stock"{% if filter.inventory is defined and filter.inventory == 'in_stock' %} selected{% endif %}>View in stock</option>
+										<option value="out_of_stock"{% if filter.inventory is defined and filter.inventory == 'out_of_stock' %} selected{% endif %}>View out of stock</option>
+									</select>
+								</div>
+								<div class="field">
+									<button class="ui labeled icon button blue"><i class="filter icon"></i>Filter</button>
+									<a href="{{ url.base }}/product/display"><i class="cancel icon"></i>Reset</a>
+								</div>
+							</form>
+						</div>
+					</div>
+					<div class="eight wide column">
+						<h5 class="ui horizontal divider header"><i class="cubes icon"></i>Products</h5>
+						<table class="ui celled compact table records striped selectable olive" id="user-ui-table" data-insert="append">
+							<thead>
+								<tr>
+									<th>SKU</th>
+									<th>Product name</th>
+									<th>Product unit</th>
+									<th>Stock</th>
+									<th>AVG. price</th>
+									<th>Options</th>
+								</tr>
+							</thead>
+							<tbody>
+{% for product in products %}
+								<tr data-record="{{ product.product_id }}">
+									<td>{{ product.sku }}</td>
+{% if product.translations is empty %}
+									<td>{{ product.product_name }}</td>
+{% else %}
+									<td>
+										<span class="inline-popup">{{ product.product_name }}</span>
+										<div class="ui special popup">
+											<div class="ui list">
+{% for translation in product.translations %}
+												<div class="item"><i class="{{ translation.language_id }} flag"></i>{{ translation.product_name }}</div>
+{% endfor %}
+											</div>
+										</div>
+									</td>
+{% endif %}
+									<td>{{ (product.amount + 0) }}{% if product.unit_abbreviation is empty %} {{ product.unit }}{% else %}{{ product.unit_abbreviation }}{% endif %}</td>
+									<td>{% if product.available is empty %}0{% else %}{{ (product.available + 0) }}{% endif %}</td>
+									<td>{{ product.average_price|number_format(2, ',', '.') }} {{ currency.symbol }}</td>
+									<td class="collapsing">
+										<a href="{{ url.base }}/product/edit/{{ product.product_id }}"><i class="edit icon"></i></a>
+										<a href="{{ url.base }}/inventory/display/{{ product.product_id }}"><i class="dropbox icon"></i></a>
+										<a href="{{ url.base }}/product/translate/{{ product.product_id }}" class="popup" data-content="Translate product"><i class="globe icon"></i></a>
+										<a href="{{ url.base }}/product/delete/{{ product.product_id }}" class="ajax" data-confirm="Are you sure you want to delete this contact?" data-message="#user-ajax-link-message" data-remove="record"><i class="delete icon"></i></a>
+									</td>
+								</tr>
+{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</main>
+{% include 'confirm-dialog.twig' %}
+{% endblock %}

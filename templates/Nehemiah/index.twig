@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="{{ url.url }}/">
+		<title>Tribal Trading</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/g/gridlex@2.2.5">
+		<link rel="stylesheet" href="{{ url.vendor }}/fortawesome/font-awesome/css/font-awesome.min.css">
+		<link href="{{ url.template }}/third-party/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+		<link href="{{ url.template }}/third-party/jquery-ui/jquery-ui.theme.min.css" rel="stylesheet">
+		<link href="{{ url.template }}/css/framework.css" rel="stylesheet">
+	</head>
+	<body>
+{% block login %}
+{% include 'navigation.twig' %}
+{% endblock %}
+{% block content %}{% endblock %}
+		<script src="https://cdn.jsdelivr.net/g/jquery@3.2.1,jquery.form@4.2.0,jquery.ui@1.11.4"></script>
+		<script src="{{ url.vendor }}/tinymce/tinymce/tinymce.min.js"></script>
+		<script src="{{ url.vendor }}/tinymce/tinymce/jquery.tinymce.min.js"></script>
+		<script src="{{ url.template }}/third-party/joequery-Stupid-Table-Plugin/stupidtable.min.js"></script>
+		<script src="{{ url.template }}/js/nehemiah.js"></script>
+		<script src="{{ url.template }}/js/jquery.nehemiah.js"></script>
+		<script src="{{ url.template }}/js/framework.js"></script>
+{% block scripts %}
+{% endblock %}
+	</body>
+</html>

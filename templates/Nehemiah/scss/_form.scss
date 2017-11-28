@@ -1,0 +1,83 @@
+@mixin addon($color) {
+	@if (lightness($color) < 50) {
+		color: $background-color;
+		text-shadow: 1px 1px darken($color, 20%);
+	} @else if (lightness($color) > 75) {
+		color: $font-color;
+		text-shadow: 1px 1px $background-color;
+	} @else {
+		color: darken($color, 45%);
+		text-shadow: 1px 1px lighten($color, 8%);
+	}
+	
+	background-color: $color;
+	border: 1px solid darken($color, 5%);
+}
+
+form {
+	label {
+		width: 100%;
+		display: inline-block;
+		margin-bottom: 3px;
+		font-weight: bold;
+		cursor: pointer;
+	}
+	
+	.control {
+		display: inline-block;
+		padding: 6px 12px;
+		flex: 1;
+		width: 100%;
+		height: 34px;
+		white-space: nowrap;
+		background-color: $background-color;
+		outline: 0;
+		border: none;
+		border: 1px solid darken($default-color, 5%);
+		border-radius: $border-radius;
+	}
+	
+	[multiple].control, textarea.control { height: auto; }
+	
+	.control:read-only {
+		color: darken($primary-color, 40%);
+	}
+	
+	.control:disabled {
+		color: darken($warning-color, 40%);
+	}
+	
+	.control:focus {
+		border-color: $primary-color;
+		@include box-shadow($primary-shadow);
+	}
+	
+	.group {
+		.dropdown { flex: 1; }
+		
+		.addon {
+			padding: 6px 12px;
+			font-weight: 500;
+			background: $default-color;
+			border: none;
+			height: 34px;
+			border: 1px solid darken($default-color, 5%);
+		}
+		
+		.addon.success { @include addon($success-color); }
+		.addon.info { @include addon($info-color); }
+		.addon.warning { @include addon($warning-color); }
+		.addon.error { @include addon($error-color); }
+		.addon.primary { @include addon($primary-color); }
+		.addon.dark { @include addon($dark-color); }
+		
+		> .control, .addon { border-radius: 0; }
+		.control:not(:first-child), .addon:not(:first-child) { border-left: none; }
+		> .control:first-child, .addon:first-child { border-radius: $border-radius 0 0 $border-radius; }
+		> .control:last-child, .addon:last-child { border-radius: 0 $border-radius $border-radius 0; }
+	}
+}
+
+form.inline {
+	display: inline-block;
+}

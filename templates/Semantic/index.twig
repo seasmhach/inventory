@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="{{ url.base }}/">
+		<title>Tribal Trading</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="{{ url.vendor }}/semantic/ui/dist/semantic.min.css" rel="stylesheet">
+		<link href="{{ url.templates }}/Semantic/third_party/semantic-ui-calendar/dist/calendar.min.css" rel="stylesheet">
+		<link href="{{ url.templates }}/Semantic/css/semantic.css" rel="stylesheet">
+	</head>
+	<body>
+{% block login %}
+		<div class="ui fixed pointing menu">
+			<div class="header item">Tribal Trading</div>
+			<div class="ui simple dropdown item">
+				<i class="random icon"></i> Transactions <i class="dropdown icon"></i>
+				<div class="menu">
+					<a class="item" href="{{ url.base }}/buy/compose"><i class="plus icon"></i> Buy</a>
+					<a class="item" href="{{ url.base }}/buy/display"><i class="list icon"></i> Display purchases</a>
+					<div class="divider"></div>
+					<a class="item" href="{{ url.base }}/sell/compose"><i class="minus icon"></i> Sell</a>
+					<a class="item" href="{{ url.base }}/sell/display"><i class="list icon"></i> Display sales</a>
+					<div class="divider"></div>
+					<a class="item" href="{{ url.base }}/delivery/compose"><i class="truck icon"></i> Delivery</a>
+					<a class="item" href="{{ url.base }}/delivery/display"><i class="list icon"></i> Display deliveries</a>
+					<div class="divider"></div>
+					<a class="item" href="{{ url.base }}/shipment/compose"><i class="ship icon"></i> Ship</a>
+					<a class="item" href="{{ url.base }}/shipment/display"><i class="list icon"></i> Display shipments</a>
+					<div class="divider"></div>
+					<a class="item" href="{{ url.base }}/produce/compose"><i class="pie chart icon"></i> Produce</a>
+					<a class="item" href="{{ url.base }}/produce/display"><i class="list icon"></i> Display productions</a>
+					<div class="divider"></div>
+					<a class="item" href="{{ url.base }}/write-off/compose"><i class="remove circle icon"></i> Write-off inventory</a>
+					<a class="item" href="{{ url.base }}/write-off/display"><i class="list icon"></i> Display written off inventory</a>
+				</div>
+			</div>
+			<div class="ui simple dropdown item">
+				<i class="industry icon"></i> Processes <i class="dropdown icon"></i>
+				<div class="menu">
+					<a class="item" href="{{ url.base }}/process/compose"><i class="industry icon"></i> Define process</a>
+					<a class="item" href="{{ url.base }}/process/display"><i class="list icon"></i> Display processes</a>
+				</div>
+			</div>
+			<div class="ui simple dropdown item">
+				<i class="cubes icon"></i> Products <i class="dropdown icon"></i>
+				<div class="menu">
+					<a class="item" href="{{ url.base }}/product/compose"><i class="cube icon"></i> Create Product</a>
+					<a class="item" href="{{ url.base }}/product/display"><i class="list icon"></i> Display Products</a>
+				</div>
+			</div>
+			<div class="ui simple dropdown item">
+				<i class="file pdf outline icon"></i> Reports <i class="dropdown icon"></i>
+				<div class="menu">
+					<a class="item" href="{{ url.base }}/report/compose"><i class="file pdf icon"></i> Create PDF report</a>
+					<a class="item" href="{{ url.base }}/report/display"><i class="list icon"></i> Display PDF reports</a>
+				</div>
+			</div>
+			<div class="ui simple dropdown item">
+				<i class="user icon"></i> Accounts <i class="dropdown icon"></i>
+				<div class="menu">
+					<a class="item" href="{{ url.base }}/account/compose"><i class="add user icon"></i> Create Account</a>
+					<a class="item" href="{{ url.base }}/account/display"><i class="list icon"></i> Display Accounts</a>
+				</div>
+			</div>
+			<div class="ui simple dropdown item">
+				<i class="address card outline icon"></i> Contacts <i class="dropdown icon"></i>
+				<div class="menu">
+					<a class="item" href="{{ url.base }}/contact/compose"><i class="address book icon"></i> Create Contact</a>
+					<a class="item" href="{{ url.base }}/contact/display"><i class="list icon"></i> Display Contacts</a>
+				</div>
+			</div>
+			<div class="ui simple dropdown item">
+				<i class="shopping cart outline icon"></i> Webshop <i class="dropdown icon"></i>
+				<div class="menu">
+					<a class="item" href="{{ url.base }}/shop/compose"><i class="plus icon"></i> Create new Shop</a>
+					<a class="item" href="{{ url.base }}/shop/display"><i class="list icon"></i> Display Shops</a>
+				</div>
+			</div>
+			<div class="right menu">
+				<a class="item" href="{{ url.base }}/account/logout"><i class="sign out icon"></i> Sign Out</a>
+				<div class="item">
+					<div class="ui transparent icon input">
+						<input placeholder="Search..." type="text">
+						<i class="search link icon"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="pusher">
+{% endblock %}
+{% block content %}{% endblock %}
+		</div>
+		<script src="{{ url.templates }}/Semantic/third_party/jquery-3.2.1.min.js"></script>
+		<script src="{{ url.templates }}/Semantic/third_party/jquery.form.min.js"></script>
+		<script src="{{ url.vendor }}/semantic/ui/dist/semantic.min.js"></script>
+		<script src="{{ url.templates }}/Semantic/third_party/semantic-ui-calendar/dist/calendar.min.js"></script>
+		<script src="{{ url.templates }}/Semantic/javascript/nehemiah.js"></script>
+		<script src="{{ url.base }}/projects/Heartbeat/javascript/heartbeat.js"></script>
+{% block scripts %}
+{% endblock %}
+	</body>
+</html>

@@ -1,0 +1,9 @@
+{#
+	Add conditions for the WHERE clause
+#}
+{% for column_name, column in table.columns %}
+	public function group_by_{{ column_name }}() {
+		$this->group[] = $this->alias . '.{{ column_name }}';
+	}
+
+{% endfor %}

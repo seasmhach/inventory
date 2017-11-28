@@ -1,0 +1,100 @@
+{#
+	Generate the setters for the columns that are allowed to be set manual.
+	Some columns like auto-incrementing column, or columns that get a time on
+	creation or update will not have setters.
+#}
+
+	public function set(array ${{ table }}) {
+{% for column in manual_columns %}
+		if (isset(${{ table }}['{{ column.name }}'])) {
+{% if column.nullable == true %}
+			if (is_null(${{ table }}['{{ column.name }}'])) {
+				$this->set_null_{{ column.name }}();
+			} else {
+{% if column.sql_type == 'datetime' or column.sql_type == 'date' %}
+				if (strtotime(${{ table }}['{{ column.name }}'])) {
+					$this->set_{{ column.name }}(${{ table }}['{{ column.name }}']);
+				}
+{% else %}
+				$this->set_{{ column.name }}(({{ column.php_type }}) ${{ table }}['{{ column.name }}']);
+{% endif %}
+			}
+{% else %}
+{% if column.sql_type == 'datetime' or column.sql_type == 'date' %}
+			if (strtotime(${{ table }}['{{ column.name }}'])) {
+				$this->set_{{ column.name }}(${{ table }}['{{ column.name }}']);
+			}
+{% else %}
+			$this->set_{{ column.name }}(({{ column.php_type }}) ${{ table }}['{{ column.name }}']);
+{% endif %}
+{% endif %}
+		}
+{% if loop.last == false %}
+	
+{% endif %}
+{% endfor %}
+	}
+
+{% for column in manual_columns %}
+{% if column.sql_type == 'datetime' %}{# MySQL DATETIME setter #}
+	/**
+	 * Setter for: {{ column.comment }}
+	 *
+	 * Pass a string that can be parsed by PHP's 'strtotime' function or leave
+	 * empty for the current time. The time will then be formatted to the valid
+	 * MySQL DATETIME format.
+	 *
+	 * For more on strtotime: http://php.net/manual/en/function.strtotime.php
+	 *
+	 * @param {{ column.php_type }} ${{ column.name }} {{ column.comment }}
+	 */
+	public function set_{{ column.name }}({{ column.php_type }} ${{ column.name }} = null) {
+		if (is_null(${{ column.name }})) {
+			$this->set_columns['{{ column.name }}'] = date("Y-m-d H:i:s");
+		} else {
+			$this->set_columns['{{ column.name }}'] = date("Y-m-d H:i:s", strtotime(${{ column.name }}));
+		}
+	}
+
+{% elseif column.sql_type == 'date' %}{# MySQL DATE setter #}
+	/**
+	 * Setter for: {{ column.comment }}
+	 *
+	 * Pass a string that can be parsed by PHP's 'strtotime' function or leave
+	 * empty for the current time. The time will then be formatted to the valid
+	 * MySQL DATE format.
+	 *
+	 * For more on strtotime: http://php.net/manual/en/function.strtotime.php
+	 *
+	 * @param {{ column.php_type }} ${{ column.name }} {{ column.comment }}
+	 */
+	public function set_{{ column.name }}({{ column.php_type }} ${{ column.name }} = null) {
+		if (is_null(${{ column.name }})) {
+			$this->set_columns['{{ column.name }}'] = date("Y-m-d");
+		} else {
+			$this->set_columns['{{ column.name }}'] = date("Y-m-d", strtotime(${{ column.name }}));
+		}
+	}
+
+{% else %}{# Default setter #}
+	/**
+	 * Setter for: {{ column.comment }}
+	 *
+	 * @param {{ column.php_type }} ${{ column.name }} {{ column.comment }}
+	 */
+	public function set_{{ column.name }}({{ column.php_type }} ${{ column.name }}) {
+		$this->set_columns['{{ column.name }}'] = ${{ column.name }};
+	}
+
+{% endif %}
+{% if column.nullable == true %}{# Null setter #}
+	/**
+	 * This columns is null-able. You can explicitly set this column to null by
+	 * calling this method which is not possible using its default setter.
+	 */
+	public function set_null_{{ column.name }}() {
+		$this->set_columns['{{ column.name }}'] = null;
+	}
+
+{% endif %}
+{% endfor %}

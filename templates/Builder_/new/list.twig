@@ -1,0 +1,74 @@
+{#
+	These methods below allow you to easily define which columns you want to
+	use in your select statement. They'll allow you to set aliases too.
+#}
+{% for column_name, column in table.columns %}
+	/**
+	 * @param string $alias The alias you want to use for the column
+	 */
+	public function list_{{ column_name }}(string $alias = '{{ column_name }}') {
+		$this->list[$alias] = $this->alias . '.{{ column_name }} AS `' . $alias . '`';
+	}
+
+	/**
+	 * @param string $alias The alias under which you've listed the column
+	 */
+	public function unlist_{{ column_name }}(string $alias = '{{ column_name }}') {
+		unset($this->list[$alias]);
+	}
+	
+	public function count_{{ column_name }}(string $alias) {
+		$this->list[$alias] = "COUNT($this->alias.{{ column_name }}) AS `$alias`";
+	}
+	
+	public function max_{{ column_name }}(string $alias) {
+		$this->list[$alias] = "MAX($this->alias.{{ column_name }}) AS `$alias`";
+	}
+	
+	public function min_{{ column_name }}(string $alias) {
+		$this->list[$alias] = "MIN($this->alias.{{ column_name }}) AS `$alias`";
+	}
+	
+	public function avg_{{ column_name }}(string $alias) {
+		$this->list[$alias] = "AVG($this->alias.{{ column_name }}) AS `$alias`";
+	}
+{% if column.data_type in ['int', 'float'] %}
+	
+	public function sum_{{ column_name }}(string $alias) {
+		$this->list[$alias] = "SUM($this->alias.{{ column_name }}) AS `$alias`";
+	}
+{% endif %}
+
+{% endfor %}
+	/**
+	 * Reset the list of columns that are appointed for selection
+	 */
+	public function list_none() {
+		$this->list = [];
+	}
+	
+	/**
+	 * This method takes as many arguments as you need. It's a convenient method
+	 * to define a selection of columns that you want to include in one statement.
+	 */
+	public function list() {
+		$this->list_none();
+		
+		$arguments = func_get_args();
+		
+		foreach ($arguments as $argument) {
+			$this->list_add($argument);
+		}
+	}
+	
+	public function list_add($column) {
+		if (is_array($column)) {
+			$this->list[$column['alias']] = $this->alias . '.' . $column['column'] . ' AS `' . $column['alias'] . '`';
+		} else {
+			$this->list[$column] = $this->alias . '.' . $column . ' AS `' . $column . '`';
+		}
+	}
+
+	public function list_custom(string $column, string $alias) {
+		$this->list[$alias] = "$column as `$alias`";
+	}

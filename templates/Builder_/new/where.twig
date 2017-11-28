@@ -1,0 +1,68 @@
+{#
+	Here are the methods that help build the WHERE clause in your query. This
+	should get you a long way.
+#}
+{% for column_name, column in table.columns %}
+	/**
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_is({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} = '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_is_not({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} != '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_greater_than({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} > '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_greater_than_or_is({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} >= '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_smaller_than({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} < '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_smaller_than_or_is({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} <= '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+
+{% if true == column.null %}
+	/**
+	 * Require {{ column_name }} to be set to NULL
+	 */
+	public function {{ column_name }}_is_null() {
+		$this->where[] = $this->alias . '.{{ column_name }} IS NULL';
+	}
+
+	/**
+	 * Require {{ column_name }} to not be NULL
+	 */
+	public function {{ column_name }}_is_not_null() {
+		$this->where[] = $this->alias . '.{{ column_name }} IS NOT NULL';
+	}
+
+{% endif %}
+{% endfor %}
+	public function where(string $custom) {
+		$this->where[] = $custom;
+	}
+

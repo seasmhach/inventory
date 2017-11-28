@@ -1,0 +1,44 @@
+{#
+	Generate the getters for the columns.
+#}
+{% for column in columns %}{# Default getter #}
+	/**
+	 * Getter for: {{ column.comment }}
+	 *
+	 * Returns the value fetched in a MySQL SELECT statement for column
+	 * '{{ column.name }}'.
+	 *
+	 * @return {{ column.php_type }}{% if column.nullable == true %}|null{% endif %}|bool {{ column.comment }} or false if the column
+	 * wasn't included in the SELECT statement
+	 */
+	public function get_{{ column.name }}() {
+		return $this->columns['{{ column.name }}'] ?? false;
+	}
+	
+{% if column.sql_type == 'date' or column.sql_type == 'datetime' %}{# Get as unix timestamp #}
+	/**
+	 * Time getter for: {{ column.comment }}
+	 *
+	 * Get the column converted to a unix timestamp
+	 * 
+	 * @return int|null {{ column.comment }} as unix timestamp
+	 */
+	public function get_as_time_{{ column.name }}() {
+		return strtotime($this->columns['{{ column.name }}']);
+	}
+
+{% endif %}
+{% endfor %}
+	/**
+	 * If You've added an alias to the get list, there's no regular getter for
+	 * that column. This function allows you to get the value. It works for regular
+	 * columns too.
+	 * 
+	 * @param string|bool $alias The alias of the column to get or false if the
+	 * column isn't set.
+	 * 
+	 * @return mixed Value of column or false if the column isn't set
+	 */
+	public function get(string $alias) {
+		return $this->columns[$alias] ?? false;
+	}

@@ -1,0 +1,477 @@
+{% extends 'index.twig' %}
+
+{% block content %}
+			<main>
+				<h2>Purchases</h2>
+				<div class="ui divider"></div>
+				<form method="post" action="{{ url.base }}/buy/save" class="ui form ajax-form" enctype="multipart/form-data" id="transaction-create-form">
+{% if transaction is defined %}
+					<input type="hidden" name="transaction_id" value="{{ transaction.transaction_id }}">
+{% endif %}
+					<div id="message-area" class="ui message hidden">
+						<i class="close icon"></i>
+						<div class="header">&nbsp;</div>
+						<ul class="list hidden"></ul>
+					</div>
+					<div class="ui grid">
+						<div class="three wide column">
+							<h5 class="ui horizontal divider header"><i class="shopping basket icon"></i>Purchase information</h5>
+							<div class="field">
+								<label>Seller/Vendor</label>
+								<select name="contact_id" class="dropdown search">
+{% for contact in contacts %}
+									<option value="{{ contact.contact_id }}"{% if transaction is defined and transaction.contact_id == contact.contact_id %} selected{% endif %}>{% if contact.nickname is not empty %}{{ contact.nickname }}{% elseif contact.organization is not empty %}{{ contact.organization }}{% else %}{{ contact.first_name }} {{ contact.last_name }}{% endif %}</option>
+{% endfor %}
+								</select>
+							</div>
+							<div class="two fields">
+								<div class="field">
+									<label>Reference no.</label>
+									<input type="text" name="reference" placeholder="Invoice number"{% if transaction is defined %} value="{{ transaction.reference }}"{% endif %}>
+								</div>
+								<div class="field">
+									<label>Invoice/receipt date</label>
+									<div class="ui icon input datepicker">
+										<i class="calendar icon"></i>
+										<input type="text" name="date"{% if transaction is defined %} value="{{ transaction.date }}"{% endif %}>
+									</div>
+								</div>
+							</div>
+							<div class="field">
+								<label>Currency used for transaction</label>
+								<select name="currency_id" class="dropdown search">
+{% for currency in currencies %}
+									<option value="{{ currency.currency_id }}"{% if transaction is defined %}{% if transaction.currency_id == currency.currency_id %} selected{% endif %}{% elseif currency.currency_id == default_currency %} selected{% endif %}>{{ currency.currency_name }}</option>
+{% endfor %}
+								</select>
+							</div>
+							<div class="field">
+								<label>Note / Extra information</label>
+								<textarea name="note" cols="60" rows="4">{% if transaction is defined %}{{ transaction.note }}{% endif %}</textarea>
+							</div>
+							<div class="field">
+								<div class="ui slider checkbox">
+									<input type="checkbox" name="requires_attention" value="1"{% if transaction is defined and transaction.requires_attention == 1 %} checked{% endif %}>
+									<label>Transaction requires attention</label>
+								</div>
+							</div>
+							<div class="field">
+								<label>Relevant documents</label>
+								<label class="ui left labeled icon button file-upload"><i class="upload icon"></i><span>Select document(s)</span><input type="file" name="documents[]" multiple></label>
+							</div>
+{% if documents is defined and documents is not empty %}
+							<div class="field">
+								<table class="ui celled compact table records violet">
+									<thead>
+										<tr>
+											<th>Filename</th>
+											<th class="collapsing"><i class="trash icon"></i></th>
+										</tr>
+									</thead>
+									<tbody>
+{% for document in documents %}
+										<tr>
+											<td><a href="{{ document.url }}">{{ document.name }}</a></td>
+											<td><a href="{{ url.base }}/transaction/delete-document/{{ transaction.transaction_id }}/{{ document.name|url_encode() }}" data-message="#message-area" data-confirm="Are you sure you want to delete this document?" class="ajax" data-remove="record"><i class="trash icon"></i></a></td>
+										</tr>
+{% endfor %}
+									</tbody>
+								</table>
+							</div>
+{% endif %}
+							<div class="field">
+								<button class="ui left basic primary labeled icon button" type="submit"><i class="save icon">&nbsp;</i>Save purchase</button>
+							</div>
+						</div>
+						<div class="thirteen wide column">
+							<h5 class="ui horizontal divider header"><i class="cubes icon"></i>Products</h5>
+							<table class="ui celled compact table records olive spreadsheet" data-table="inventory">
+								<thead>
+									<tr>
+										<th>Product</th>
+										<th>Reference</th>
+										<th>Batch number</th>
+										<th>Expiration date</th>
+										<th>Origin</th>
+										<th>Quantity</th>
+										<th>Price</th>
+										<th>Tax rate</th>
+										<th class="collapsing"><i class="trash icon"></i></th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr class="clone-template">
+										<td>
+											<div class="field">
+												<select name="product[%row_index%][product_id]" class="dropdown transparent search" disabled>
+{% for product in products %}
+													<option value="{{ product.product_id }}">{{ product.product_name }} {{ product.amount + 0 }} {{ product.unit_abbreviation }}</option>
+{% endfor %}
+												</select>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="ui transparent input">
+												<input type="text" name="product[%row_index%][distributors_reference]" placeholder="Reference" disabled>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="ui transparent input">
+												<input type="text" name="product[%row_index%][distributors_batch_number]" placeholder="Vendors batch no." style="min-width:100px;" disabled>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="ui transparent icon input pickdate">
+												<i class="calendar icon"></i>
+												<input type="text" name="product[%row_index%][expiration_date]" placeholder="Expiration date" style="width:120px;" disabled>
+											</div>
+										</td>
+										<td>
+											<div class="field">
+												<select name="product[%row_index%][origin]" class="dropdown transparent search" disabled>
+													<option value="0">Country of origin (optional)</option>
+{% for country in countries %}
+													<option value="{{ country.country_id }}">{{ country.country_name }}</option>
+{% endfor %}
+												</select>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui input transparent">
+													<input type="number" step=".001" name="product[%row_index%][quantity]" placeholder="Quantity" style="width:120px;" disabled>
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".0001" name="product[%row_index%][price]" placeholder="Price" style="max-width: 90px;" disabled>
+													<select name="product[%row_index%][price_type]" class="ui compact transparent selection dropdown" disabled>
+														<option value="unit" selected>unit</option>
+														<option value="total">total</option>
+													</select>
+													<select name="product[%row_index%][inc]" class="ui compact transparent selection dropdown" disabled>
+														<option value="0">net</option>
+														<option value="1">gross</option>
+													</select>
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".01" name="product[%row_index%][tax_rate]" placeholder="Tax" style="max-width: 100px;" disabled>
+												</div>
+											</div>
+										</td>
+										<td class="center aligned"><a href="#" class="delete_row"><i class="trash icon"></i></a></td>
+									</tr>
+{% if inventories is defined %}
+{% for inventory in inventories %}
+									<tr data-row="{{ inventory.transaction_inventory_id }}"{% if highlight == inventory.transaction_inventory_id %} class="positive"{% endif %}>
+										<td>
+											<div class="field">
+												<select name="transaction_inventory[{{ inventory.transaction_inventory_id }}][product_id]" class="dropdown transparent search">
+{% for product in products %}
+													<option value="{{ product.product_id }}"{% if inventory.product_id == product.product_id %} selected{% endif %}>{{ product.product_name }} {{ product.amount + 0 }} {{ product.unit_abbreviation }}</option>
+{% endfor %}
+												</select>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="ui transparent input">
+												<input type="text" name="transaction_inventory[{{ inventory.transaction_inventory_id }}][distributors_reference]" placeholder="Reference" value="{{ inventory.distributors_reference }}">
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="ui transparent input">
+												<input type="text" name="transaction_inventory[{{ inventory.transaction_inventory_id }}][distributors_batch_number]" placeholder="Vendors batch no." style="min-width:100px;" value="{{ inventory.distributors_batch_number }}">
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="ui transparent icon input pickdate">
+												<i class="calendar icon"></i>
+												<input type="text" name="transaction_inventory[{{ inventory.transaction_inventory_id }}][expiration_date]" placeholder="Expiration date" style="width:120px;" value="{{ inventory.expiration_date }}">
+											</div>
+										</td>
+										<td>
+											<div class="field">
+											<select name="transaction_inventory[{{ inventory.transaction_inventory_id }}][origin]" class="dropdown transparent search">
+												<option value="0">Country of origin (optional)</option>
+{% for country in countries %}
+												<option value="{{ country.country_id }}"{% if inventory.origin == country.country_id %} selected{% endif %}>{{ country.country_name }}</option>
+{% endfor %}
+											</select>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui input transparent">
+													<input type="number" step=".001" name="transaction_inventory[{{ inventory.transaction_inventory_id }}][quantity]" placeholder="Quantity" value="{{ inventory.quantity + 0 }}" style="width:120px;">
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".0001" name="transaction_inventory[{{ inventory.transaction_inventory_id }}][price]" placeholder="Price" value="{{ (inventory.net_value / inventory.quantity)|round(4) }}" style="max-width: 90px;">
+													<select name="transaction_inventory[{{ inventory.transaction_inventory_id }}][price_type]" class="ui compact transparent selection dropdown">
+														<option value="unit" selected>unit</option>
+														<option value="total">total</option>
+													</select>
+													<select name="transaction_inventory[{{ inventory.transaction_inventory_id }}][inc]" class="ui compact transparent selection dropdown">
+														<option value="0" selected>net</option>
+														<option value="1">gross</option>
+													</select>
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".01" name="transaction_inventory[{{ inventory.transaction_inventory_id }}][tax_rate]" placeholder="Tax" value="{{ inventory.tax_rate + 0 }}" style="max-width: 75px;">
+												</div>
+											</div>
+										</td>
+										<td class="center aligned">{% if inventory.distributed == 0 %}<a href="#" class="delete_row"><i class="trash icon"></i></a>{% else %}<i class="minus circle icon popup" data-content="You can not delete this inventory from this transaction because other transactions are referring to it."></i>{% endif %}</td>
+									</tr>
+{% endfor %}
+{% endif %}
+								</tbody>
+								<tfoot>
+									<tr>
+										<th colspan="9">
+											<div class="ui tiny icon buttons right floated">
+												<button type="button" class="ui button grey append-row"><i class="plus icon"></i></button>
+											</div>
+										</th>
+									</tr>
+								</tfoot>
+							</table>
+							<h5 class="ui horizontal divider header"><i class="list icon"></i>Inline items</h5>
+							<table class="ui celled compact table records orange spreadsheet" data-table="inline">
+								<thead>
+									<tr>
+										<th>Title</th>
+										<th>Price total</th>
+										<th>Tax</th>
+										<th>Purchased units</th>
+										<th class="collapsing"><i class="trash icon"></i></th>
+									</tr>
+								</thead>
+								<tbody{% if inline_items is defined and inline_items|length > 0 %} data-index="{{ inline_items|length - 1 }}"{% endif %}>
+									<tr class="clone-template">
+										<td>
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="text" name="inline_item[%row_index%][title]" placeholder="Title" disabled>
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".01" name="inline_item[%row_index%][price]" placeholder="Price" style="max-width: 100px;" disabled>
+													<select name="inline_item[%row_index%][price_type]" class="ui compact transparent selection dropdown" disabled>
+														<option value="unit" selected>unit</option>
+														<option value="total">total</option>
+													</select>
+													<select name="inline_item[%row_index%][inc]" class="ui compact transparent selection dropdown" disabled>
+														<option value="0">net</option>
+														<option value="1">gross</option>
+													</select>
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".01" name="inline_item[%row_index%][tax_rate]" placeholder="Tax" style="max-width: 100px;" disabled>
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".001" name="inline_item[%row_index%][quantity]" placeholder="Quantity" style="max-width: 125px;" disabled>
+												</div>
+											</div>
+										</td>
+										<td class="center aligned"><a href="#" class="delete_row"><i class="trash icon"></i></a></td>
+									</tr>
+{% if inline_items is defined %}
+{% for index, inline_item in inline_items %}
+									<tr>
+										<td>
+											<div class="field">
+												<input type="hidden" name="inline_item[{{ index }}][inline_item_id]" value="{{ inline_item.inline_item_id }}">
+												<div class="ui transparent input">
+													<input type="text" name="inline_item[{{ index }}][title]" placeholder="Title" value="{{ inline_item.title }}">
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".01" name="inline_item[{{ index }}][price]" placeholder="Price" value="{{ (inline_item.net_value / inline_item.quantity)|round(2) }}" style="max-width: 100px;">
+													<select name="inline_item[{{ index }}][price_type]" class="ui compact transparent selection dropdown">
+														<option value="unit" selected>unit</option>
+														<option value="total">total</option>
+													</select>
+													<select name="inline_item[{{ index }}][inc]" class="ui compact transparent selection dropdown">
+														<option value="0" selected>net</option>
+														<option value="1">gross</option>
+													</select>
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".01" name="inline_item[{{ index }}][tax_rate]" placeholder="Tax" value="{{ inline_item.tax_rate + 0 }}" style="max-width: 100px;">
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".001" name="inline_item[{{ index }}][quantity]" placeholder="Quantity" value="{{ inline_item.quantity + 0 }}" style="max-width: 125px;">
+												</div>
+											</div>
+										</td>
+										<td class="center aligned"><a href="#" class="delete_row"><i class="trash icon"></i></a></td>
+									</tr>
+{% endfor %}
+{% endif %}
+								</tbody>
+								<tfoot>
+									<tr>
+										<th colspan="9">
+											<div class="ui tiny icon buttons right floated">
+												<button type="button" class="ui button grey append-row"><i class="plus icon"></i></button>
+											</div>
+										</th>
+									</tr>
+								</tfoot>
+							</table>
+							<h5 class="ui horizontal divider header"><i class="ship icon"></i>Shipping</h5>
+							<table class="ui celled compact table records purple spreadsheet" data-table="transport">
+								<thead>
+									<tr>
+										<th>Company</th>
+										<th>Price total</th>
+										<th>Tax</th>
+										<th>Quantity</th>
+										<th class="collapsing"><i class="trash icon"></i></th>
+									</tr>
+								</thead>
+								<tbody{% if transports is defined and transports|length > 0 %} data-index="{{ transports|length - 1 }}"{% endif %}>
+									<tr class="clone-template">
+										<td>
+											<div class="field">
+												<select name="transport[%row_index%][contact_id]" class="dropdown transparent search" disabled>
+{% for contact in contacts %}
+													<option value="{{ contact.contact_id }}">{% if contact.nickname is not empty %}{{ contact.nickname }}{% elseif contact.organization is not empty %}{{ contact.organization }}{% else %}{{ contact.first_name }} {{ contact.last_name }}{% endif %}</option>
+{% endfor %}
+												</select>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".01" name="transport[%row_index%][price]" placeholder="Price" style="max-width: 100px;" disabled>
+													<select name="transport[%row_index%][price_type]" class="ui compact transparent selection dropdown" disabled>
+														<option value="unit" selected>unit</option>
+														<option value="total">total</option>
+													</select>
+													<select name="transport[%row_index%][inc]" class="ui compact transparent selection dropdown" disabled>
+														<option value="0">net</option>
+														<option value="1">gross</option>
+													</select>
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".01" name="transport[%row_index%][tax_rate]" placeholder="Tax" style="max-width: 100px;" disabled>
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".001" name="transport[%row_index%][quantity]" placeholder="Quantity" style="max-width: 125px;" disabled>
+												</div>
+											</div>
+										</td>
+										<td class="center aligned"><a href="#" class="delete_row"><i class="trash icon"></i></a></td>
+									</tr>
+{% if transports is defined %}
+{% for index, transport in transports %}
+									<tr data-row="{{ index }}">
+										<td>
+											<div class="field">
+												<input type="hidden" name="transport[{{ index }}][transport_id]" value="{{ transport.transport_id }}">
+												<select name="transport[{{ index }}][contact_id]" class="dropdown transparent search">
+{% for contact in contacts %}
+													<option value="{{ contact.contact_id }}"{% if transport.contact_id == contact.contact_id %} selected{% endif %}>{% if contact.nickname is not empty %}{{ contact.nickname }}{% elseif contact.organization is not empty %}{{ contact.organization }}{% else %}{{ contact.first_name }} {{ contact.last_name }}{% endif %}</option>
+{% endfor %}
+												</select>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".01" name="transport[{{ index }}][price]" placeholder="Price" value="{{ (transport.net_value / transport.quantity)|round(2) }}" style="max-width: 100px;">
+													<select name="transport[{{ index }}][price_type]" class="ui compact transparent selection dropdown">
+														<option value="unit" selected>unit</option>
+														<option value="total">total</option>
+													</select>
+													<select name="transport[{{ index }}][inc]" class="ui compact transparent selection dropdown">
+														<option value="0" selected>net</option>
+														<option value="1">gross</option>
+													</select>
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".01" name="transport[{{ index }}][tax_rate]" placeholder="Tax" value="{{ transport.tax_rate + 0 }}" style="max-width: 100px;">
+												</div>
+											</div>
+										</td>
+										<td class="collapsing">
+											<div class="field">
+												<div class="ui transparent input">
+													<input type="number" step=".001" name="transport[{{ index }}][quantity]" placeholder="Quantity" value="{{ transport.quantity + 0 }}" style="max-width: 125px;">
+												</div>
+											</div>
+										</td>
+										<td class="center aligned"><a href="#" class="delete_row"><i class="trash icon"></i></a></td>
+									</tr>
+{% endfor %}
+{% endif %}
+								</tbody>
+								<tfoot>
+									<tr>
+										<th colspan="9">
+											<div class="ui tiny icon buttons right floated">
+												<button type="button" class="ui button grey append-row"><i class="plus icon"></i></button>
+											</div>
+										</th>
+									</tr>
+								</tfoot>
+							</table>
+						</div>
+					</div>
+				</form>
+			</main>
+{% include 'confirm-dialog.twig' %}
+{% endblock %}
+
+{% block scripts %}
+		<script src="{{ url.base }}/projects/Transaction/javascript/transaction.js"></script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'index.twig' %}
+
+{% block content %}
+			<main>
+				<h1>Report template composer</h1>
+				<form method="post" action="{{ url.base }}/report/save" class="ui form ajax-form save">
+{% if report is defined %}
+					<input type="hidden" name="report_id" value="{{ report.report_id }}">
+{% endif %}
+					<div class="ui message hidden">
+						<i class="close icon"></i>
+						<div class="header">&nbsp;</div>
+						<ul class="list hidden"></ul>
+					</div>
+					<div class="ui grid">
+						<div class="eight wide column">
+							<h5 class="ui horizontal divider header"><i class="html5 icon"></i>Markup (Twig template language)</h5>
+							<div class="ui segment">
+								<div id="twig-editor">{% if report is defined %}{{ report.markup }}{% endif %}</div>
+							</div>
+							<h5 class="ui horizontal divider header"><i class="cogs icon"></i>Settings</h5>
+							<div class="four fields">
+								<div class="field">
+									<label>Descriptive report name</label>
+									<input type="text" name="descriptive_name" placeholder="Descriptive name"{% if report is defined %} value="{{ report.descriptive_name }}"{% endif %}>
+								</div>
+								<div class="field">
+									<label>Report language</label>
+									<select name="language_id" class="dropdown search">
+{% for language in languages %}
+										<option value="{{ language.language_id }}"{% if report is defined and language.language_id == report.language_id %} selected{% endif %}>{{ language.language_name }}</option>
+{% endfor %}
+									</select>
+								</div>
+								<div class="field">
+									<label>Paper</label>
+									<select name="paper" class="dropdown search">
+										<option value="A4"{% if report is defined and report.paper == 'A4' %} selected{% endif %}>A4</option>
+										<option value="A3"{% if report is defined and report.paper == 'A3' %} selected{% endif %}>A3</option>
+									</select>
+								</div>
+								<div class="field">
+									<label>Orientation</label>
+									<select name="orientation" class="dropdown search">
+										<option value="portrait"{% if report is defined and report.orientation == 'portrait' %} selected{% endif %}>Portrait</option>
+										<option value="landscape"{% if report is defined and report.orientation == 'landscape' %} selected{% endif %}>Landscape</option>
+									</select>
+								</div>
+							</div>
+							<div class="four fields">
+								<div class="field">
+									<label>Filename</label>
+									<input type="text" name="filename" placeholder="File name"{% if report is defined %} value="{{ report.filename }}"{% endif %}>
+								</div>
+							</div>
+							<div class="field">
+								<button class="ui left basic primary labeled icon button right floated" type="submit"><i class="save icon">&nbsp;</i>Save</button>
+							</div>
+						</div>
+						<div class="eight wide column">
+							<h5 class="ui horizontal divider header"><i class="css3 icon"></i>CSS</h5>
+							<div class="ui segment">
+								<div id="css-editor">{% if report is defined %}{{ report.style }}{% endif %}</div>
+							</div>
+							<h5 class="ui horizontal divider header"><i class="header icon"></i>Header</h5>
+							<p>
+								The content below will be added to the 'head' element of the body, just before the style declaration. You can use this section to, for example, add (Google) fonts. Make sure
+								that when you are using Google Fonts, or any other font provider, you specify the right font weight in yout CSS above!
+							</p>
+							<div class="ui segment">
+								<div id="html-editor">{% if report is defined %}{{ report.header }}{% endif %}</div>
+							</div>
+						</div>
+					</div>
+					<input type="hidden" name="markup"{% if report is defined %} value="{{ report.markup }}"{% endif %}>
+					<input type="hidden" name="style"{% if report is defined %} value="{{ report.style }}"{% endif %}>
+					<input type="hidden" name="header"{% if report is defined %} value="{{ report.header }}"{% endif %}>
+				</form>
+			</main>
+{% endblock %}
+
+{% block scripts %}
+		<script src="{{ url.templates }}/Semantic/third_party/ace/ace.js"></script>
+		<script src="{{ url.base }}/projects/Report/javascript/report.js"></script>
+{% endblock %}

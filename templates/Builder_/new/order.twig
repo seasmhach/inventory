@@ -1,0 +1,6 @@
+{% for column_name, column in table.columns %}
+	public function order_by_{{ column_name }}(string $position = 'DESC') {
+		$this->order[] = $this->alias . '.{{ column_name }} ' . $position;
+	}
+
+{% endfor %}

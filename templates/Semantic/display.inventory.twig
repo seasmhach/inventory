@@ -1,0 +1,85 @@
+{% extends 'index.twig' %}
+
+{% block content %}
+			<main>
+				<div class="ui compact icon menu">
+					<a class="item popup" href="{{ url.base }}/product/compose" data-content="Create product"><i class="cube icon"></i></a>
+					<a class="item popup" href="{{ url.base }}/setting/ui/Product" data-content="Settings"><i class="cogs icon"></i></a>
+				</div>
+
+				<div class="ui grid centered">
+					<div class="five wide column">
+						<h5 class="ui horizontal divider header"><i class="info circle icon"></i>Information</h5>
+						<h2>{{ product.product_name }}</h2>
+						<form method="get" action="{{ url.base }}/product/price-tendency/{{ product.product_id }}" id="price_tendency">
+							<canvas></canvas>
+						</form>
+					</div>
+					<div class="eight wide column">
+						<h5 class="ui horizontal divider header"><i class="cubes icon"></i>Products</h5>
+						<table class="ui celled compact table records striped selectable olive" id="user-ui-table" data-insert="append">
+							<thead>
+								<tr>
+									<th>Lot Nr.</th>
+									<th>Date</th>
+									<th>Distributor</th>
+									<th>Acquired</th>
+									<th>Dispersed</th>
+									<th>Available</th>
+									<th>Unit price</th>
+									<th>Documents</th>
+									<th>Options</th>
+								</tr>
+							</thead>
+							<tbody>
+{% for inventory in inventories %}
+								<tr data-record="{{ inventory.inventory_id }}">
+									<td>{% if inventory.distributors_batch_number is empty %}{{ inventory.batch_number }}{% else %}{{ inventory.distributors_batch_number }}{% endif %}</td>
+									<td>{{ inventory.date|date('d.m.Y') }}</td>
+									<td class="popup" data-content="{{ inventory.organization }}">{{ inventory.nickname }}</th>
+									<td class="collapsing">{{ inventory.acquired + 0 }}</td>
+									<td class="collapsing">{{ inventory.dispersed|default(0) + 0 }}</td>
+									<td class="collapsing">{{ inventory.available + 0 }}</td>
+									<td>{{ inventory.unit_price|number_format(2, ',', '.') }} {{ currency.symbol }}</td>
+									<td class="collapsing">
+{% if inventory.documents is empty %}
+										No document available
+{% else %}
+										<div class="ui dropdown">
+											<div class="text">Select document</div>
+											<i class="dropdown icon"></i>
+											<div class="menu">
+{% for document in inventory.documents %}
+											<div class="item"><a href="{{ document.url }}">{{ document.name }}</a></div>
+{% endfor %}
+											</div>
+										</div>
+{% endif %}
+									</td>
+									<td class="collapsing">
+										<a href="{{ url.base }}/{{ inventory.type }}/edit/{{ inventory.transaction_id }}?highlight={{ inventory.transaction_inventory_id }}" class="popup" data-content="Edit transaction"><i class="shuffle icon"></i></a>
+										<a href="{{ url.base }}/contact/edit/{{ inventory.contact_id }}" class="popup" data-content="Edit distributor"><i class="address card outline icon"></i></a>
+										<a href="{{ url.base }}/inventory/history/{{ inventory.inventory_id }}" class="ajax" data-snippet="#history-feed" data-modal="#history-modal"><i class="history icon"></i></a>
+									</td>
+								</tr>
+{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="ui modal tiny" id="history-modal">
+					<i class="close icon"></i>
+					<div class="header">Inventory history</div>
+					<div class="content" id="history-feed"></div>
+					<div class="actions">
+						<div class="ui button">Cancel</div>
+						<button type="submit" form="history-form" class="ui button">Generate</button>
+					</div>
+				</div>
+			</main>
+{% endblock %}
+
+{% block scripts %}
+		<script src="{{ url.templates }}/Semantic/third_party/Chart.bundle.min.js"></script>
+		<script src="{{ url.base }}/projects/Product/javascript/product.js"></script>
+{% endblock %}

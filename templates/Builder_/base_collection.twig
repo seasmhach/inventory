@@ -1,0 +1,311 @@
+<?php
+{# Including the license #}
+{% include 'license.twig' %}
+{# Define and including namespaces #}
+namespace {{ namespace }};
+use ArrayIterator;
+use Nehemiah\DB;
+use PDO;
+
+abstract class {{ base_collection }} extends ArrayIterator {
+	use DB; // Trait for database connection.
+	
+	/**
+	 * @var string MySQL table name
+	 */
+	protected $table = '{{ table }}';
+	
+	/**
+	 * @var string MySQL table alias 
+	 */
+	protected $alias = '{{ table }}';
+	
+	/**
+	 * A associative array of columns to get in the MySQL SELECT statement. Use
+	 * the alias for the column as key and the columns name as value.
+	 * 
+	 * All fields are set to be selected by default.
+	 * 
+	 * @var array Columns list alias/column
+	 */
+	protected $get_columns = [
+{% for column in columns %}
+		'{{ column.name }}' => '{{ column.name }}',
+{% endfor %}
+	];
+	
+	protected $get_function_columns = [];
+	
+	protected $group_by = [];
+	
+	/**
+	 * An associative array of columns to set in a MySQL CREATE or UPDATE
+	 * statement. Use the column name as key and the value as value.
+	 * 
+	 * Use the setters to manipulate this list.
+	 * 
+	 * @var array Column list column/value
+	 */
+	protected $set_columns = [];
+	
+	protected $conditions = [];
+	protected $having = [];
+	protected $parameters = [];
+	protected $joins = [];
+	protected $order_by = [];
+	protected $limit = null;
+	
+	public function __construct(string $alias = '{{ table }}') {
+		$this->alias = $alias;
+	}
+	
+	public function table() {
+		return $this->table;
+	}
+	
+	public function alias() {
+		return $this->alias;
+	}
+
+{% include 'column_list_methods.twig' %}
+
+{% include 'setters.twig' %}
+{% include 'getters.twig' %}
+
+
+{% include 'conditions.twig' %}
+{% for column in columns %}
+	public function order_by_{{ column.name }}(string $position = 'DESC') {
+		$this->order_by['{{ column.name }}'] = $this->alias . '.{{ column.name }} ' . $position;
+	}
+
+{% endfor %}
+	public function limit(int $rows, int $offset = 0) {
+		$this->limit = "LIMIT $rows OFFSET $offset";
+	}
+
+{% include 'join.twig' with {'join_namespace' : collection }%}
+	public function retrieve() {
+		return $this->getArrayCopy();
+	}
+	
+	public function retrieve_indexed(string $column_name) {
+		$collection = [];
+		
+		foreach ($this->getArrayCopy() as $record) {
+			$collection[$record[$column_name]] = $record;
+		}
+		
+		return $collection;
+	}
+	
+	public function retrieve_grouped(string $column_name) {
+		$collection = [];
+		
+		foreach ($this->getArrayCopy() as $record) {
+			$collection[$record[$column_name]] ?? [];
+			
+			$collection[$record[$column_name]][] = $record;
+		}
+		
+		return $collection;
+	}
+	
+	public function retrieve_json() {
+		return json_encode($this->getArrayCopy());
+	}
+	
+	public function retrieve_xml(string $root_element = 'collection', string $child_element = 'instance') {
+		$xml = "<$root_element>\n";
+		
+		foreach ($this->getArrayCopy() as $record) {
+			$xml .= "\t<$child_element>\n";
+			
+			foreach ($record as $column => $value) {
+				$xml .= "\t\t<$column>$value</$column>\n";
+			}
+			
+			$xml .= "\t</$child_element>\n";
+		}
+		
+		$xml .= "</$root_element>";
+		
+		return $xml;
+	}
+	
+	public function column(string $column_name) {
+		$collection = [];
+		
+		foreach ($this->getArrayCopy() as $record) {
+			$collection[] = $record[$column_name];
+		}
+		
+		return $collection;
+	}
+	
+	public function pairs(string $key, string $value) {
+		$pairs = [];
+		
+		foreach ($this->getArrayCopy() as $record) {
+			$pairs[$record[$key]] = $record[$value];
+		}
+		
+		return $pairs;
+	}
+
+	public function select_information(array &$columns = [], array &$joins = [], array &$conditions = [], array &$having, array &$parameters = [], array &$order_by = [], array &$group_by = []) {
+		foreach ($this->get_columns as $alias => $column) {
+			$columns[$alias] = $this->alias . '.' . $column . ' AS `' . $alias . '`';
+		}
+		
+		foreach ($this->get_function_columns as $alias => $function_column) {
+			$columns[$alias] = $function_column . ' AS `' . $alias . '`';
+		}
+	
+		foreach ($this->joins as $join) {
+			$joins[$join['alias']] = $join['sql'];
+			$join['object']->select_information($columns, $joins, $conditions, $having, $parameters, $order_by, $group_by);
+		}
+		
+		$group_by = array_merge($this->group_by, $group_by);
+		$conditions = array_merge($this->conditions, $conditions);
+		$having = array_merge($this->having, $having);
+		$parameters = array_merge($this->parameters, $parameters);
+		$order_by = array_merge($this->order_by, $order_by);
+	}
+	
+	public function clear_conditions() {
+		$this->conditions = $this->parameters = [];
+		
+		foreach ($this->joins as $join) {
+			$join['object']->clear_conditions();
+		}
+	}
+	
+	public function read() {	
+		$pdo = $this->pdo();
+		$columns = $joins = $conditions = $having = $parameters = $order_by = $group_by = [];
+		$this->select_information($columns, $joins, $conditions, $having, $parameters, $order_by, $group_by);
+		
+		$sql = "SELECT " . implode(", ", $columns) . "\n";		
+		$sql .= "FROM `$this->table` AS `$this->alias`\n";
+		$sql .= implode($joins);
+		
+		if (0 < count($conditions)) {
+			$sql .= "WHERE " . implode(' AND ', $conditions);
+		}
+		
+		if (!empty($group_by)) {
+			$sql .= "\nGROUP BY " . implode(", ", $group_by);
+		}
+		
+		if (0 < count($having)) {
+			$sql .= "\nHAVING " . implode(' AND ', $having);
+		}
+		
+		if (0 < count($order_by)) {
+			$sql .= "\n ORDER BY " . implode(', ', $order_by);
+		}
+		
+		if (isset($this->limit)) {
+			$sql .= "\n$this->limit";
+		}
+		
+		$statement = $pdo->prepare($sql);
+		
+		if (true === $statement->execute($parameters)) {
+			while ($result = $statement->fetch(PDO::FETCH_ASSOC)) {
+				$this->append($result);
+			}
+			
+			return (int) $statement->rowCount();
+		}
+		
+		return false;
+	}
+	
+	public function update() {
+		$pdo = $this->pdo();
+		$columns = $joins = $conditions = $having = $parameters = $set = [];
+		$this->select_information($columns, $joins, $conditions, $having, $parameters);
+		
+		foreach ($this->set_columns as $column => $value) {
+			$set[] = "$this->alias.$column = :$column";
+			$parameters[':' . $column] = $value;
+		}
+		
+		$sql = "UPDATE IGNORE `$this->table` AS `$this->alias`\n";
+		$sql .= "SET " . implode(', ', $set) . "\n";
+		$sql .= implode($joins);
+		
+		if (0 < count($conditions)) {
+			$sql .= "WHERE " . implode(' AND ', $conditions);
+		}
+		
+		$statement = $pdo->prepare($sql);
+		
+		if (true === $statement->execute($parameters)) {
+			return (int) $statement->rowCount();
+		}
+		
+		return false;
+	}
+	
+	public function delete() {
+		$pdo = $this->pdo();
+		$columns = $joins = $conditions = $having = $parameters = [];
+		$this->select_information($columns, $joins, $conditions, $having, $parameters);
+		
+		$sql = "DELETE FROM `$this->table` USING `$this->table` AS `$this->alias`\n";
+		$sql .= implode($joins);
+		
+		if (0 < count($conditions)) {
+			$sql .= "WHERE " . implode(' AND ', $conditions);
+		}
+		
+		$statement = $pdo->prepare($sql);
+		
+		if (true === $statement->execute($parameters)) {			
+			return (int) $statement->rowCount();
+		}
+		
+		return false;
+	}
+	
+	/* The workhorse behind the convenience methods for joining other tables.
+	 * 
+	 * @param obj $object An object to join
+	 * @param array $columns The columns conditional for this join
+	 * @param string $position Join position INNER, LEFT, RIGHT
+	 */
+	protected function join($object, array $columns, string $position) {
+		$alias = $object->alias();
+		$table = $object->table();
+		$conditions = [];
+		
+		foreach ($columns as $left_side_column => $right_side_column) {
+			$conditions[] = $this->alias . '.' . $left_side_column . ' = ' . $alias . '.' . $right_side_column;
+		}
+		
+		$sql = $position . " JOIN `" . $table . "` AS `" . $alias . "`\n";
+		$sql .= "ON " . implode(' AND ', $conditions) . "\n";
+	
+		$join = [
+			'object' => $object,
+			'columns' => $columns,
+			'position' => $position,
+			'table' => $table,
+			'alias' => $alias,
+			'sql' => $sql,
+		];
+		
+		$this->joins[] = $join;
+	}
+
+	protected function add_parameter(string $column, $value) {
+		$placeholder = count($this->parameters) . '_' . $column;
+		$this->parameters[$placeholder] = $value;
+		
+		return ':' . $placeholder;
+	}
+}

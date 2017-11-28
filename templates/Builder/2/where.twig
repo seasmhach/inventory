@@ -1,0 +1,141 @@
+{#
+	Here are the methods that help build the WHERE clause in your query. This
+	should get you a long way.
+#}
+{% for column_name, column in table.columns %}
+	/**
+	 * Equal to condition for {{ table_name }}.{{ column_name }}.
+	 *
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_is({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} = '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * Not equal to condition for {{ table_name }}.{{ column_name }}.
+	 *
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_is_not({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} != '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * Greater than condition for {{ table_name }}.{{ column_name }}.
+	 *
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_greater_than({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} > '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * Greater than or equal to condition for {{ table_name }}.{{ column_name }}.
+	 *
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_greater_than_or_is({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} >= '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * Smaller than condition for {{ table_name }}.{{ column_name }}.
+	 *
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_smaller_than({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} < '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * Smaller than or qual to condition for {{ table_name }}.{{ column_name }}.
+	 *
+	 * @param {{ column.data_type }} ${{ column_name }} {{ column.comment }}{% if column.type == 'date' or column.type == 'datetime' %} (strtotime parsable){% endif %} 
+	 */
+	public function {{ column_name }}_smaller_than_or_is({{ column.data_type }} ${{ column_name }}) {
+		$this->where[] = $this->alias . '.{{ column_name }} <= '  . $this->add_parameter('{{ column_name }}', {% if column.type == 'date' %}date("Y-m-d", strtotime(${{ column_name }})){% elseif column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime(${{ column_name }})){% else %}${{ column_name }}{% endif %});
+	}
+	
+	/**
+	 * The values that { table_name }}.{{ column_name }} should match for the record
+	 * to be included in the select query.
+	 *
+	 * @param array $values The values that {{ table_name }}.{{ column_name }} should match 
+	 */
+	public function {{ column_name }}_in(array $values) {
+		$parameters = [];
+		
+		foreach ($values as $value) {
+			$parameters[] = $this->add_parameter('{{ column_name }}', $value);
+		}
+		
+		$this->where[] = $this->alias . '.{{ column_name }} IN (' . implode(', ', $parameters) . ')';
+	}
+	
+	/**
+	 * The values that { table_name }}.{{ column_name }} should not match for the record
+	 * to be included in the select query.
+	 *
+	 * @param array $values The values that {{ table_name }}.{{ column_name }} should NOT match 
+	 */
+	public function {{ column_name }}_not_in(array $values) {
+		$parameters = [];
+		
+		foreach ($values as $value) {
+			$parameters[] = $this->add_parameter('{{ column_name }}', $value);
+		}
+		
+		$this->where[] = $this->alias . '.{{ column_name }} NOT IN (' . implode(', ', $parameters) . ')';
+	}
+	
+	/**
+	 * Require {{ table_name }}.{{ column_name }} between two values.
+	 *
+	 * $param mixed $min The minimum value {{ table_name }}.{{ column_name }} should have
+	 * $param mixed $max The maximum value {{ table_name }}.{{ column_name }} should have
+	 */
+	public function {{ column_name }}_between($min, $max) {
+		$this->where[] = $this->alias . '.{{ column_name }} BETWEEN ' . $this->add_parameter('{{ column_name }}', {% if column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime($min)){% elseif 'date' == column.type %}date("Y-m-d", strtotime($min)){% else %}$min{% endif %}) . ' AND ' . $this->add_parameter('{{ column_name }}', {% if column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime($max)){% elseif 'date' == column.type %}date("Y-m-d", strtotime($max)){% else %}$max{% endif %});
+	}
+	
+	/**
+	 * Require {{ table_name }}.{{ column_name }} to be outside of a scope.
+	 *
+	 * $param mixed $min The minimum value {{ table_name }}.{{ column_name }} should have
+	 * $param mixed $max The maximum value {{ table_name }}.{{ column_name }} should have
+	 */
+	public function {{ column_name }}_not_between($min, $max) {
+		$this->where[] = $this->alias . '.{{ column_name }} NOT BETWEEN ' . $this->add_parameter('{{ column_name }}', {% if column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime($min)){% elseif 'date' == column.type %}date("Y-m-d", strtotime($min)){% else %}$min{% endif %}) . ' AND ' . $this->add_parameter('{{ column_name }}', {% if column.type == 'datetime' %}date("Y-m-d H:i:s", strtotime($max)){% elseif 'date' == column.type %}date("Y-m-d", strtotime($max)){% else %}$max{% endif %});
+	}
+
+	public function {{ column_name }}_like(string $value, string $prefix = '%', string $suffix = '%') {	
+		$this->where[] = $this->alias . '.{{ column_name }} LIKE ' . $this->add_parameter('{{ column_name }}', $prefix . $value . $suffix);
+	}
+{% if true == column.null %}
+	/**
+	 * Require {{ table_name }}.{{ column_name }} to be set to NULL
+	 */
+	public function {{ column_name }}_is_null() {
+		$this->where[] = $this->alias . '.{{ column_name }} IS NULL';
+	}
+
+	/**
+	 * Require {{ table_name }}.{{ column_name }} to have a value other than NULL
+	 */
+	public function {{ column_name }}_is_not_null() {
+		$this->where[] = $this->alias . '.{{ column_name }} IS NOT NULL';
+	}
+
+{% endif %}
+{% endfor %}
+	/**
+	 * Add a custom condition. For those cases where the default methods just don't
+	 * cut it ;-).
+	 *
+	 * @param string $custom_condition Custom condition for MySQL WHERE clause
+	 */
+	public function where(string $custom_condition) {
+		$this->where[] = $custom_condition;
+	}
+
